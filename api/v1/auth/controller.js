@@ -84,6 +84,9 @@ exports.getLogin = async function (req, res) {
       return res.status(200).json(rsmg('90002', null));
     }
   } catch (e) {
+    if (e?.isAxiosError) {
+      e = e.toJSON();
+    }
     logger.error('error POST /api/v1/auth...', e);
     return utils.returnErrorFunction(res, 'error POST /api/v1/auth...', e);
   }
