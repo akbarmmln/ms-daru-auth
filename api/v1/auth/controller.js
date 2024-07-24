@@ -111,7 +111,19 @@ exports.getPreRegister = async function (req, res) {
       return res.status(200).json(rsmg('90004', null));
     }
     
-    return res.status(200).json(rsmg('000000', dataVerif));
+    let dataMasterOrg = await axios({
+      method: 'GET',
+      url: process.env.MS_SUPPORT_URL + `/api/v1/master-organitation/${dataVerif.organitation_id}`
+    })
+    if (dataMasterOrg.data.code != '000000') {
+      return res.status(200).json(dataMasterOrg.data);
+    }
+
+    let hasil = {
+      dataAccount: dataVerif,
+      dataOrg: dataMasterOrg.data.data
+    }
+    return res.status(200).json(rsmg('000000', hasil));
   } catch (e) {
     logger.error('error POST /api/v1/account/pre-register...', e);
     return utils.returnErrorFunction(res, 'error POST /api/v1/account/pre-register...', e);
