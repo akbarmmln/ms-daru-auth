@@ -86,6 +86,7 @@ exports.getLogin = async function (req, res) {
   } catch (e) {
     if (e?.isAxiosError) {
       e = e.toJSON();
+      e = JSON.stringify(e)
     }
     logger.error('error POST /api/v1/auth...', e);
     return utils.returnErrorFunction(res, 'error POST /api/v1/auth...', e);
