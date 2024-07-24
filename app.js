@@ -3,8 +3,8 @@ const express = require('express')
 const app = express();
 const bodyParser = require('body-parser');
 const helmet = require('helmet');
-const {integrationGenerateContext} = require('./config/context');
-const {integrationAttachResponseBody, integrationAttachContext} = require('./config/httpLogger');
+const {asyncLocalStorage, integrationGenerateContext} = require('./config/context');
+const {integrationAttachResponseBody, integrationAttachContext, httpLogger} = require('./config/httpLogger');
 
 app.use(integrationAttachResponseBody);
 app.use(integrationGenerateContext);
