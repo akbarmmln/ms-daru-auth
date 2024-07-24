@@ -133,12 +133,14 @@ exports.getPreRegister = async function (req, res) {
 exports.getPostReister = async function (req, res) {
   let transaction = await connectionDB.transaction();
   try {
+    const dateTime = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
     const tabelRegistered = (await firestore.collection('daru').doc('register_partition').get()).data();
     const obj = tabelRegistered.partition.find(o => o.status);
     if (!obj) {
       throw '90005';
     }
     const partition = obj.table;
+    const tabelLogin = adrLogin(partition)
 
     const id = `${uuidv4()}-${partition}`;
     const nama = req.body.nama;
@@ -160,6 +162,50 @@ exports.getPostReister = async function (req, res) {
     });
 
     if (cekData.length > 0 && cekData[0].is_registered == 0) {
+      await tabelLogin.create({
+        id: uuidv4(),
+        created_dt: dateTime,
+        created_by: id,
+        modified_dt: null,
+        modified_by: null,
+        is_deleted: 0,
+        account_id: id,
+        pin: pin,
+        available_counter: null,
+        next_available: null,
+      }, { transaction: transaction })
+
+      await adrVerifikasi.update({
+        account_id: id,
+        is_registered: 1
+      }, {
+        where : {
+          kk: cekData[0].kk
+        },
+        transaction: transaction
+      })
+
+      let hasilCreate = await axios({
+        method: 'POST',
+        url: process.env.MS_ACCOUNT_URL + '/api/v1/account/create-account',
+        data: {
+          partition: partition,
+          dateTime: dateTime,
+          id: id,
+          nama: nama,
+          kk: kk,
+          mobile_number: mobile_number,
+          email: email,
+          alamat: alamat,
+          blok: blok,
+          nomor_rumah: nomor_rumah,
+          rt: rt,
+          rw: rw
+        }
+      })
+      if (hasilCreate.data.code != "000000") {
+        return res.status(200).json(hasilCreate.data);
+      }
       await transaction.commit();
       return res.status(200).json(rsmg('000000', {}));
     } else if (cekData.length > 0 && cekData[0].is_registered == 1) {
