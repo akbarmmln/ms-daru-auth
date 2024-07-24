@@ -121,7 +121,7 @@ exports.getPreRegister = async function (req, res) {
     }
     return res.status(200).json(rsmg('000000', hasil));
   } catch (e) {
-    logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/pre-register...', module: null });
+    logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/pre-register...'});
     return utils.returnErrorFunction(res, 'error POST /api/v1/auth/pre-register...', e);
   }
 }
@@ -213,7 +213,7 @@ exports.getPostReister = async function (req, res) {
     }
   } catch (e) {
     await transaction.rollback();
-    logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/post-register...', module: null });
+    logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/post-register...'});
     return utils.returnErrorFunction(res, 'error POST /api/v1/auth/post-register...', e);
   }
 }
@@ -240,7 +240,7 @@ exports.verifyToken = async function(req, res){
     }
     return res.status(200).json(rsmg('000000', hasil))
   }catch(e){
-    logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/verify-token...', module: null });
+    logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/verify-token...'});
     return utils.returnErrorFunction(res, 'error POST /api/v1/auth/verify-token...', e);
   }
 }
