@@ -84,14 +84,7 @@ exports.getLogin = async function (req, res) {
       return res.status(200).json(rsmg('90002', null));
     }
   } catch (e) {
-    let emgs;
-    if (e?.isAxiosError) {
-      emgs = e.toJSON();
-      emgs = JSON.stringify(emgs)
-    } else {
-      emgs = e
-    }
-    logger.error('error POST /api/v1/auth...', emgs);
+    logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth...', module: null })
     return utils.returnErrorFunction(res, 'error POST /api/v1/auth...', e);
   }
 }
