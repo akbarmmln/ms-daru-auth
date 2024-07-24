@@ -75,7 +75,7 @@ exports.verify = async function (token) {
     const publicKey = process.env.PUBLIC_KEY_JWT;
 
     const options = {
-      issuer: 'adiraku',
+      issuer: 'daruku',
       algorithms: ['RS256']
     };
 

@@ -15,6 +15,7 @@ const connectionDB = require('../../../config/db').Sequelize;
 const axios = require('axios');
 const {fire} = require("../../../config/firebase");
 const firestore = fire.firestore();
+const errMsg = require('../../../error/resError');
 
 exports.getLogin = async function (req, res) {
   try {
@@ -42,15 +43,12 @@ exports.getLogin = async function (req, res) {
       const partition = splitId[splitIdLenght - 1]
 
       let dataAccount = await axios({
-        method: 'POST',
-        url: process.env.MS_ACCOUNT_URL + '/api/v1/account',
-        data: {
-          id: 'fa5d61a1-4278-4665-abe5-f1431f8c3bbf-202407'
-        }
+        method: 'GET',
+        url: process.env.MS_ACCOUNT_URL + `/api/v1/account/${account_id}`,
       });
       console.log('dataAccountdataAccount', dataAccount.data)
-      if (dataAccount.data.code != '000000') {
-        return res.status(200).json(dataAccount.data);
+      if (dataAccount.data.code != '000000' && dataAccount.data.data != true) {
+        return res.status(200).json(rsmg('90001', null));
       }
 
       const tabelLogin = adrLogin(partition)
@@ -66,8 +64,7 @@ exports.getLogin = async function (req, res) {
 
       const payloadEnkripsiLogin = {
         id: dataAccountLogin.account_id,
-        kk: dataAccount.data.data.dataAccount.kk,
-        mobile_number: dataAccount.data.data.dataAccount.mobile_number
+        kk: kk
       }
       const pinRegistered = dataAccountLogin.pin;
       const checkPin = await bcrypt.compare(pin, pinRegistered);
@@ -87,8 +84,8 @@ exports.getLogin = async function (req, res) {
       return res.status(200).json(rsmg('90002', null));
     }
   } catch (e) {
-    logger.error('error POST /api/v1/account...', e);
-    return utils.returnErrorFunction(res, 'error POST /api/v1/account...', e);
+    logger.error('error POST /api/v1/auth...', e);
+    return utils.returnErrorFunction(res, 'error POST /api/v1/auth...', e);
   }
 }
 
@@ -125,8 +122,8 @@ exports.getPreRegister = async function (req, res) {
     }
     return res.status(200).json(rsmg('000000', hasil));
   } catch (e) {
-    logger.error('error POST /api/v1/account/pre-register...', e);
-    return utils.returnErrorFunction(res, 'error POST /api/v1/account/pre-register...', e);
+    logger.error('error POST /api/v1/auth/pre-register...', e);
+    return utils.returnErrorFunction(res, 'error POST /api/v1/auth/pre-register...', e);
   }
 }
 
@@ -217,7 +214,34 @@ exports.getPostReister = async function (req, res) {
     }
   } catch (e) {
     await transaction.rollback();
-    logger.error('error POST /api/v1/account/post-register...', e);
-    return utils.returnErrorFunction(res, 'error POST /api/v1/account/post-register...', e);
+    logger.error('error POST /api/v1/auth/post-register...', e);
+    return utils.returnErrorFunction(res, 'error POST /api/v1/auth/post-register...', e);
+  }
+}
+
+exports.verifyToken = async function(req, res){
+  try{
+    let token = req.headers['access-token'];
+    if (!token) return res.status(403).json(errMsg('90006'));
+
+    let verifyRes = await utils.verify(token);
+    let decrypt = await utils.dekrip(verifyRes.masterKey, verifyRes.buffer);
+
+    let newPayloadJWT = {
+      id: decrypt.id,
+      kk: decrypt.kk,
+    };
+
+    let signJWT = await utils.enkrip(newPayloadJWT);
+    let newToken = await utils.signin(signJWT);
+
+    let hasil = {
+      id: decrypt.id,
+      newToken: newToken
+    }
+    return res.status(200).json(rsmg('000000', hasil))
+  }catch(e){
+    logger.error('error POST /api/v1/auth/verify-token...', e);
+    return utils.returnErrorFunction(res, 'error POST /api/v1/auth/verify-token...', e);
   }
 }
