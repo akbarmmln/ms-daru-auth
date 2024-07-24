@@ -3,7 +3,12 @@ const express = require('express')
 const app = express();
 const bodyParser = require('body-parser');
 const helmet = require('helmet');
+const {integrationGenerateContext} = require('./config/context');
+const {integrationAttachResponseBody, integrationAttachContext} = require('./config/httpLogger');
 
+app.use(integrationAttachResponseBody);
+app.use(integrationGenerateContext);
+app.use(integrationAttachContext);
 app.use(bodyParser.json({ type: 'application/json', limit: '100mb', parameterLimit: 100000, extended: true }));
 app.use(bodyParser.urlencoded({ limit: '100mb', parameterLimit: 100000, extended: true }));
 app.use(bodyParser.text());
