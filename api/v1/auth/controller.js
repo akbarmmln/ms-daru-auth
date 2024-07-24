@@ -46,7 +46,6 @@ exports.getLogin = async function (req, res) {
         method: 'GET',
         url: process.env.MS_ACCOUNT_URL + `/api/v1/account/${account_id}`,
       });
-      console.log('dataAccountdataAccount', dataAccount.data)
       if (dataAccount.data.code != '000000' && dataAccount.data.data != true) {
         return res.status(200).json(rsmg('90001', null));
       }
@@ -122,7 +121,7 @@ exports.getPreRegister = async function (req, res) {
     }
     return res.status(200).json(rsmg('000000', hasil));
   } catch (e) {
-    logger.error('error POST /api/v1/auth/pre-register...', e);
+    logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/pre-register...', module: null });
     return utils.returnErrorFunction(res, 'error POST /api/v1/auth/pre-register...', e);
   }
 }
@@ -214,7 +213,7 @@ exports.getPostReister = async function (req, res) {
     }
   } catch (e) {
     await transaction.rollback();
-    logger.error('error POST /api/v1/auth/post-register...', e);
+    logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/post-register...', module: null });
     return utils.returnErrorFunction(res, 'error POST /api/v1/auth/post-register...', e);
   }
 }
@@ -241,7 +240,7 @@ exports.verifyToken = async function(req, res){
     }
     return res.status(200).json(rsmg('000000', hasil))
   }catch(e){
-    logger.error('error POST /api/v1/auth/verify-token...', e);
+    logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/verify-token...', module: null });
     return utils.returnErrorFunction(res, 'error POST /api/v1/auth/verify-token...', e);
   }
 }

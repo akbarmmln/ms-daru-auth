@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 const pino = require('pino');
 const moment = require('moment-timezone');
-const uuidGen = require('../uuidGen');
+const uuidGen = require('uuid');
 
 class LoggerPino {
   #pino = false;
@@ -28,11 +28,7 @@ class LoggerPino {
             log_type: 'AppLog',
           };
         },
-      },
-      redact: {
-        paths: ['request.body.nik', 'request.body.mobile_number'],
-        censor: '**CENCORED**',
-      },
+      }
     });
   }
 
