@@ -8,6 +8,7 @@ const logger = require('../../../config/logger');
 const formats = require('../../../config/format');
 const mailer = require('../../../config/mailer');
 const adrVerifikasi = require('../../../model/adr_verifikasi');
+const adrAuth = require('../../../model/adr_auth');
 const adrLogin = require('../../../model/adr_login');
 const bcrypt = require('bcryptjs');
 const saltRounds = 12;
@@ -21,7 +22,18 @@ exports.getLogin = async function (req, res) {
   try {
     const kk = req.body.kk;
     const pin = req.body.pin;
+    const deviceID = req.body.deviceID;
 
+    if (formats.isEmpty(kk)) {
+      throw '90007'
+    }
+    if (formats.isEmpty(pin)) {
+      throw '90008'
+    }
+    if (formats.isEmpty(deviceID)) {
+      throw '90009'
+    }
+    
     const findVerif = await adrVerifikasi.findOne({
       raw: true,
       where: {
@@ -42,14 +54,6 @@ exports.getLogin = async function (req, res) {
       const splitIdLenght = splitId.length
       const partition = splitId[splitIdLenght - 1]
 
-      let dataAccount = await axios({
-        method: 'GET',
-        url: process.env.MS_ACCOUNT_V1_URL + `/account/${account_id}`,
-      });
-      if (dataAccount.data.code != '000000' && dataAccount.data.data != true) {
-        return res.status(200).json(rsmg('90001', null));
-      }
-
       const tabelLogin = adrLogin(partition)
       const dataAccountLogin = await tabelLogin.findOne({
         raw: true,
@@ -60,15 +64,25 @@ exports.getLogin = async function (req, res) {
       if (!dataAccountLogin) {
         return res.status(200).json(rsmg('90002', null));
       }
-
-      const payloadEnkripsiLogin = {
-        id: dataAccountLogin.account_id,
-        kk: kk
-      }
       const pinRegistered = dataAccountLogin.pin;
       const checkPin = await bcrypt.compare(pin, pinRegistered);
-
       if (checkPin) {
+        let dataAccount = await axios({
+          method: 'GET',
+          url: process.env.MS_ACCOUNT_V1_URL + `/account/${account_id}`,
+        });
+        if (dataAccount.data.code != '000000' && dataAccount.data.data != true) {
+          return res.status(200).json(rsmg('90001', null));
+        }
+        
+        await codeAuth(account_id, 'login');
+
+        const payloadEnkripsiLogin = {
+          id: dataAccountLogin.account_id,
+          kk: kk,
+          device_id: deviceID
+        }
+  
         const hash = await utils.enkrip(payloadEnkripsiLogin);
         const token = await utils.signin(hash);
   
@@ -226,9 +240,20 @@ exports.verifyToken = async function(req, res){
     let verifyRes = await utils.verify(token);
     let decrypt = await utils.dekrip(verifyRes.masterKey, verifyRes.buffer);
 
+    const resAuth = await adrAuth.findOne({
+      where: {
+        account_id: decrypt.id,
+        type: 'login',
+      },
+    });
+    if (!resAuth || resAuth?.validate != 1) {
+      return res.status(403).json(errMsg('90010'));
+    }
+
     let newPayloadJWT = {
       id: decrypt.id,
       kk: decrypt.kk,
+      device_id: decrypt.device_id
     };
 
     let signJWT = await utils.enkrip(newPayloadJWT);
@@ -236,11 +261,69 @@ exports.verifyToken = async function(req, res){
 
     let hasil = {
       id: decrypt.id,
+      kk: decrypt.kk,
+      device_id: decrypt.device_id,
       newToken: newToken
     }
     return res.status(200).json(rsmg('000000', hasil))
   }catch(e){
     logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/verify-token...'});
     return utils.returnErrorFunction(res, 'error POST /api/v1/auth/verify-token...', e);
+  }
+}
+
+const codeAuth = async function (account_id, type) {
+  let authRecord = await adrAuth.findOne({
+    where: {
+      account_id: account_id,
+      type: type,
+    },
+  });
+
+  if (!authRecord) {
+    await adrAuth.create({
+      id: uuidv4(),
+      created_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+      created_by: account_id,
+      modified_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+      modified_by: account_id,
+      is_deleted: 0,
+      account_id: account_id,
+      code: null,
+      type: type,
+      validate: 1,
+    })
+  } else {
+    await adrAuth.update({
+      modified_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+      modified_by: account_id,
+      validate: 1,
+    }, {
+      where: {
+        id: authRecord.id
+      }
+    })
+  }
+}
+
+exports.getLogout = async function (req, res) {
+  try {
+    const id = req.body.id;
+
+    await adrAuth.update({
+      modified_dt: null,
+      modified_by: id,
+      code: null,
+      validate: 0
+    }, {
+      where: {
+        account_id: id
+      }
+    })
+
+    return res.status(200).json(rsmg('000000', {}))
+  } catch (e) {
+    logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/logout...'});
+    return utils.returnErrorFunction(res, 'error POST /api/v1/auth/logout...', e);
   }
 }
