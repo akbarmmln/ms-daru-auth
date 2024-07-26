@@ -44,7 +44,7 @@ exports.getLogin = async function (req, res) {
 
       let dataAccount = await axios({
         method: 'GET',
-        url: process.env.MS_ACCOUNT_URL + `/api/v1/account/${account_id}`,
+        url: process.env.MS_ACCOUNT_V1_URL + `/account/${account_id}`,
       });
       if (dataAccount.data.code != '000000' && dataAccount.data.data != true) {
         return res.status(200).json(rsmg('90001', null));
@@ -109,7 +109,7 @@ exports.getPreRegister = async function (req, res) {
     
     let dataMasterOrg = await axios({
       method: 'GET',
-      url: process.env.MS_SUPPORT_URL + `/api/v1/master-organitation/${dataVerif.organitation_id}`
+      url: process.env.MS_SUPPORT_V1_URL + `/master-organitation/${dataVerif.organitation_id}`
     })
     if (dataMasterOrg.data.code != '000000') {
       return res.status(200).json(dataMasterOrg.data);
@@ -183,7 +183,7 @@ exports.getPostReister = async function (req, res) {
 
       let hasilCreate = await axios({
         method: 'POST',
-        url: process.env.MS_ACCOUNT_URL + '/api/v1/account/create-account',
+        url: process.env.MS_ACCOUNT_V1_URL + '/account/create-account',
         data: {
           partition: partition,
           dateTime: dateTime,
