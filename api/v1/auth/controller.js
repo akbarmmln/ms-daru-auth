@@ -253,8 +253,12 @@ exports.verifyToken = async function(req, res){
       },
     });
     console.log(`kok masuk sini ${JSON.stringify(resAuth)}`)
-    if (!resAuth || resAuth?.validate != 1) {
-      console.log('kok masuk sini')
+    if (!resAuth) {
+      console.log('kok masuk sini1')
+      return res.status(401).json(errMsg('90010'));
+    }
+    if (resAuth?.validate != 1) {
+      console.log('kok masuk sini2')
       return res.status(401).json(errMsg('90010'));
     }
 
