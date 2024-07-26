@@ -252,13 +252,15 @@ exports.verifyToken = async function(req, res){
         type: 'login',
       },
     });
+    console.log(`kok masuk sini ${JSON.stringify(resAuth)}`)
     if (!resAuth || resAuth?.validate != 1) {
-      return res.status(403).json(errMsg('90010'));
+      console.log('kok masuk sini')
+      return res.status(401).json(errMsg('90010'));
     }
 
     const sessionKey = resAuth.code;
     if (sessionKey !== decrypt.dcs) {
-      return res.status(401).json(errMsg('90006'));
+      return res.status(401).json(errMsg('90010'));
     }
 
     const newPayloadJWT = {
