@@ -89,7 +89,7 @@ exports.getLogin = async function (req, res) {
         res.set('Access-Control-Expose-Headers', 'access-token');
         res.set('access-token', token);
   
-        return res.status(200).json(rsmg('000000', null));
+        return res.status(200).json(rsmg('000000', {}));
       } else {
         throw '90003'
       }
