@@ -287,7 +287,7 @@ exports.verifyToken = async function(req, res){
     return res.status(200).json(rsmg('000000', hasil))
   }catch(e){
     logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/verify-token...'});
-    return utils.returnErrorFunction(res, 'error POST /api/v1/auth/verify-token...', e);
+    return res.status(401).json(errMsg('90010'));
   }
 }
 
