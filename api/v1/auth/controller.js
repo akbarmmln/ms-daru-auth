@@ -268,9 +268,15 @@ exports.verifyToken = async function(req, res){
       kk: decrypt.kk,
       device_id: decrypt.device_id
     };
+    const hash = await utils.enkrip(newPayloadJWT);
+    const sessionNewKey = hash.secretKey;
+    const validHash = {
+      buffer: hash.buffer,
+      masterKey: hash.masterKey    
+    }
+    const newToken = await utils.signin(validHash);
 
-    const signJWT = await utils.enkrip(newPayloadJWT);
-    const newToken = await utils.signin(signJWT);
+    await codeAuth(decrypt.id, 'login', sessionNewKey);
 
     const hasil = {
       id: decrypt.id,
