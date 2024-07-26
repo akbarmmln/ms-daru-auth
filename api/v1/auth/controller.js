@@ -247,18 +247,14 @@ exports.verifyToken = async function(req, res){
     logger.infoWithContext(`hasil decrypt ${JSON.stringify(decrypt)}`);
 
     const resAuth = await adrAuth.findOne({
+      raw: true,
       where: {
         account_id: decrypt.id,
         type: 'login',
       },
     });
-    console.log(`kok masuk sini ${JSON.stringify(resAuth)}`)
-    if (!resAuth) {
-      console.log('kok masuk sini1')
-      return res.status(401).json(errMsg('90010'));
-    }
-    if (resAuth?.validate !== 1) {
-      console.log('kok masuk sini2')
+    
+    if (!resAuth || resAuth?.validate != 1) {
       return res.status(401).json(errMsg('90010'));
     }
 
