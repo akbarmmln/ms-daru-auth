@@ -244,6 +244,7 @@ exports.verifyToken = async function(req, res){
 
     let verifyRes = await utils.verify(token);
     let decrypt = await utils.dekrip(verifyRes.masterKey, verifyRes.buffer);
+    logger.infoWithContext(`hasil decrypt ${JSON.stringify(decrypt)}`);
 
     const resAuth = await adrAuth.findOne({
       where: {
