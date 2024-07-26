@@ -75,8 +75,6 @@ exports.getLogin = async function (req, res) {
           return res.status(200).json(rsmg('90001', null));
         }
         
-        await codeAuth(account_id, 'login');
-
         const payloadEnkripsiLogin = {
           id: dataAccountLogin.account_id,
           kk: kk,
@@ -84,8 +82,15 @@ exports.getLogin = async function (req, res) {
         }
   
         const hash = await utils.enkrip(payloadEnkripsiLogin);
-        const token = await utils.signin(hash);
+        const sessionKey = hash.secretKey;
+        const validHash = {
+          buffer: hash.buffer,
+          masterKey: hash.masterKey    
+        }
+        const token = await utils.signin(validHash);
   
+        await codeAuth(account_id, 'login', sessionKey);
+
         res.set('Access-Control-Expose-Headers', 'access-token');
         res.set('access-token', token);
   
@@ -235,7 +240,7 @@ exports.getPostReister = async function (req, res) {
 exports.verifyToken = async function(req, res){
   try{
     let token = req.headers['access-token'];
-    if (!token) return res.status(403).json(errMsg('90006'));
+    if (!token) return res.status(401).json(errMsg('90006'));
 
     let verifyRes = await utils.verify(token);
     let decrypt = await utils.dekrip(verifyRes.masterKey, verifyRes.buffer);
@@ -250,16 +255,21 @@ exports.verifyToken = async function(req, res){
       return res.status(403).json(errMsg('90010'));
     }
 
-    let newPayloadJWT = {
+    const sessionKey = resAuth.code;
+    if (sessionKey !== decrypt.dcs) {
+      return res.status(401).json(errMsg('90006'));
+    }
+
+    const newPayloadJWT = {
       id: decrypt.id,
       kk: decrypt.kk,
       device_id: decrypt.device_id
     };
 
-    let signJWT = await utils.enkrip(newPayloadJWT);
-    let newToken = await utils.signin(signJWT);
+    const signJWT = await utils.enkrip(newPayloadJWT);
+    const newToken = await utils.signin(signJWT);
 
-    let hasil = {
+    const hasil = {
       id: decrypt.id,
       kk: decrypt.kk,
       device_id: decrypt.device_id,
@@ -272,7 +282,7 @@ exports.verifyToken = async function(req, res){
   }
 }
 
-const codeAuth = async function (account_id, type) {
+const codeAuth = async function (account_id, type, code) {
   let authRecord = await adrAuth.findOne({
     where: {
       account_id: account_id,
@@ -289,7 +299,7 @@ const codeAuth = async function (account_id, type) {
       modified_by: account_id,
       is_deleted: 0,
       account_id: account_id,
-      code: null,
+      code: code,
       type: type,
       validate: 1,
     })
@@ -298,6 +308,7 @@ const codeAuth = async function (account_id, type) {
       modified_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
       modified_by: account_id,
       validate: 1,
+      code: code,
     }, {
       where: {
         id: authRecord.id

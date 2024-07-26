@@ -38,7 +38,8 @@ exports.enkrip = async function (payload) {
 
     return {
       buffer: Buffer.concat([encrypted, tag, iv]).toString('base64'),
-      masterKey: encs
+      masterKey: encs,
+      secretKey: secretKey,
     }
   } catch (e) {
     logger.error('error function enkrip...', e);
@@ -110,7 +111,10 @@ exports.dekrip = async function (masterkey, data) {
 
     let result = Buffer.concat([decipher.update(cipherByte), decipher.final()]);
     result = JSON.parse(result.toString())
-    return result
+    return {
+      ...result,
+      dcs
+    }
   } catch (e) {
     logger.error('error function dekrip...', e);
     throw e
