@@ -8,7 +8,7 @@ exports.dateFormat = async function(date, type){
         const newDate = moment(date).format(type);
         return newDate;
     } catch (e){
-        logger.error({message: 'Error formating date', error: e});
+        logger.errorWithContext({message: 'Error formating date', error: e});
         throw e;
     }
 }
@@ -18,7 +18,7 @@ exports.rupiahFormat = async function(rupiah, elit){
         const newRupiah = 'Rp ' + rupiah.toString().replace(/\B(?=(\d{3})+(?!\d))/g, `${elit}`)
         return newRupiah;
     } catch (e){
-        logger.error({message: 'error formating rupiah', error: e});
+        logger.errorWithContext({message: 'error formating rupiah', error: e});
         return 'Rp 0'
     }
 }
@@ -52,7 +52,7 @@ exports.dateFormatIndo = async function(date){
     const newDate = dateObj.format('DD-MMMM-YYYY');
     return newDate;
   } catch (e) {
-    logger.error({message: 'error formatting date', error: e});
+    logger.errorWithContext({message: 'error formatting date', error: e});
     return '-';
   }
 }

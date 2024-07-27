@@ -42,7 +42,7 @@ exports.enkrip = async function (payload) {
       secretKey: secretKey,
     }
   } catch (e) {
-    logger.error('error function enkrip...', e);
+    logger.errorWithContext({message: 'error function enkrip...', error: e});
     throw e
   }
 }
@@ -63,7 +63,7 @@ exports.signin = async function (hash) {
     );
     return token;
   } catch (e) {
-    logger.error('error function signin...', e);
+    logger.errorWithContext({message: 'error function signin...', error: e});
     throw e
   }
 }
@@ -84,7 +84,7 @@ exports.verify = async function (token) {
     );
     return userToken;
   } catch (e) {
-    logger.error('error function verify...', e);
+    logger.errorWithContext({message: 'error function verify...', error: e});
     throw e
   }
 }
@@ -116,7 +116,7 @@ exports.dekrip = async function (masterkey, data) {
       dcs
     }
   } catch (e) {
-    logger.error('error function dekrip...', e);
+    logger.errorWithContext({message: 'error function dekrip...', error: e});
     throw e
   }
 }

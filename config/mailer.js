@@ -33,7 +33,7 @@ exports.smtpMailer = async function (mailObject) {
       subject: subject,
       html: body
     };
-    logger.debug(`payload transport mail: ${JSON.stringify(payloadTransport)}, with sendProps: ${JSON.stringify(sendProps)}`)
+    logger.infoWithContext(`payload transport mail: ${JSON.stringify(payloadTransport)}, with sendProps: ${JSON.stringify(sendProps)}`)
 
     if(attachments){
       sendProps.attachments = attachments
@@ -44,7 +44,7 @@ exports.smtpMailer = async function (mailObject) {
       status: 'sucess',
       message: info
     }
-    logger.debug(`success send email, email to ${mailObject.to}`, hasil);
+    logger.infoWithContext(`success send email, email to ${mailObject.to}, ${hasil}`);
     return hasil;
   } catch (e) {
     let hasil = {
@@ -52,7 +52,7 @@ exports.smtpMailer = async function (mailObject) {
       status: 'failed',
       message: e.toString()
     }
-    logger.error(`failed to send email, email to ${mailObject.to}`, hasil);
+    logger.infoWithContext(`failed to send email, email to ${mailObject.to}, ${hasil}`);
     return hasil;
   }
 }
