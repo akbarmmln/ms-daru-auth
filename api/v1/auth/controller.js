@@ -255,7 +255,8 @@ exports.verifyTokenSelft = async function(req, res, next){
     const token = req.headers['access-token'];
     if (!token) return res.status(401).json(errMsg('90006'));
 
-    await verifyTokenMS(token);
+    const hasil = await verifyTokenMS(token);
+    req.id = hasil.id;
     return next();
   }catch(e){
     logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/verify-token...'});
@@ -345,7 +346,7 @@ const codeAuth = async function (account_id, type, code) {
 
 exports.getLogout = async function (req, res) {
   try {
-    const id = req.body.id;
+    const id = req.id;
 
     await adrAuth.update({
       modified_dt: null,
