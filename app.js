@@ -14,6 +14,16 @@ app.use(bodyParser.urlencoded({ limit: '100mb', parameterLimit: 100000, extended
 app.use(bodyParser.text());
 app.use(helmet());
 
+app.use((err, req, res, next) => {
+    if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
+        return res.json({
+            message: "request not permitted",
+            error: true,
+        });
+    }
+    next();
+});
+
 app.use('/', require('./routes'));
 
 app.use((req, res, next) => {
