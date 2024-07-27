@@ -237,62 +237,75 @@ exports.getPostRegister = async function (req, res) {
   }
 }
 
-exports.verifyToken = async function(req, res, next, page){
+exports.verifyToken = async function(req, res){
   try{
-    let token = req.headers['access-token'];
+    const token = req.headers['access-token'];
     if (!token) return res.status(401).json(errMsg('90006'));
 
-    let verifyRes = await utils.verify(token);
-    let decrypt = await utils.dekrip(verifyRes.masterKey, verifyRes.buffer);
-
-    const resAuth = await adrAuth.findOne({
-      raw: true,
-      where: {
-        account_id: decrypt.id,
-        type: 'login',
-      },
-    });
-    
-    if (!resAuth || resAuth?.validate != 1) {
-      return res.status(401).json(errMsg('90010'));
-    }
-
-    const sessionKey = resAuth.code;
-    if (sessionKey !== decrypt.dcs) {
-      return res.status(401).json(errMsg('90010'));
-    }
-
-    const newPayloadJWT = {
-      id: decrypt.id,
-      kk: decrypt.kk,
-      device_id: decrypt.device_id
-    };
-    const hash = await utils.enkrip(newPayloadJWT);
-    const sessionNewKey = hash.secretKey;
-    const validHash = {
-      buffer: hash.buffer,
-      masterKey: hash.masterKey    
-    }
-    const newToken = await utils.signin(validHash);
-
-    await codeAuth(decrypt.id, 'login', sessionNewKey);
-
-    const hasil = {
-      id: decrypt.id,
-      kk: decrypt.kk,
-      device_id: decrypt.device_id,
-      newToken: newToken
-    }
-
-    if (page === 'next') {
-      next();
-    } else {
-      return res.status(200).json(rsmg('000000', hasil))
-    }
+    const hasil = await verifyTokenMS(token);
+    return res.status(200).json(rsmg('000000', hasil))
   }catch(e){
     logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/verify-token...'});
     return res.status(401).json(errMsg('90010'));
   }
+}
+
+exports.verifyTokenSelft = async function(req, res, next){
+  try{
+    const token = req.headers['access-token'];
+    if (!token) return res.status(401).json(errMsg('90006'));
+
+    await verifyTokenMS(token);
+    return next();
+  }catch(e){
+    logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/verify-token...'});
+    return res.status(401).json(errMsg('90010'));
+  }
+}
+
+const verifyTokenMS = async function (token) {
+  let verifyRes = await utils.verify(token);
+  let decrypt = await utils.dekrip(verifyRes.masterKey, verifyRes.buffer);
+
+  const resAuth = await adrAuth.findOne({
+    raw: true,
+    where: {
+      account_id: decrypt.id,
+      type: 'login',
+    },
+  });
+  
+  if (!resAuth || resAuth?.validate != 1) {
+    return res.status(401).json(errMsg('90010'));
+  }
+
+  const sessionKey = resAuth.code;
+  if (sessionKey !== decrypt.dcs) {
+    return res.status(401).json(errMsg('90010'));
+  }
+
+  const newPayloadJWT = {
+    id: decrypt.id,
+    kk: decrypt.kk,
+    device_id: decrypt.device_id
+  };
+  const hash = await utils.enkrip(newPayloadJWT);
+  const sessionNewKey = hash.secretKey;
+  const validHash = {
+    buffer: hash.buffer,
+    masterKey: hash.masterKey    
+  }
+  const newToken = await utils.signin(validHash);
+
+  await codeAuth(decrypt.id, 'login', sessionNewKey);
+
+  const hasil = {
+    id: decrypt.id,
+    kk: decrypt.kk,
+    device_id: decrypt.device_id,
+    newToken: newToken
+  }
+  return hasil;
 }
 
 const codeAuth = async function (account_id, type, code) {

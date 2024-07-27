@@ -35,9 +35,4 @@ app.use((req, res, next) => {
     });
 });
 
-app.use(function (req, res, next) {
-    res.removeHeader("Server");
-    next();
-});
-
 module.exports = app;
