@@ -145,7 +145,7 @@ exports.getPreRegister = async function (req, res) {
   }
 }
 
-exports.getPostReister = async function (req, res) {
+exports.getPostRegister = async function (req, res) {
   let transaction = await connectionDB.transaction();
   try {
     const dateTime = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
@@ -237,14 +237,13 @@ exports.getPostReister = async function (req, res) {
   }
 }
 
-exports.verifyToken = async function(req, res){
+exports.verifyToken = async function(req, res, next, page){
   try{
     let token = req.headers['access-token'];
     if (!token) return res.status(401).json(errMsg('90006'));
 
     let verifyRes = await utils.verify(token);
     let decrypt = await utils.dekrip(verifyRes.masterKey, verifyRes.buffer);
-    logger.infoWithContext(`hasil decrypt ${JSON.stringify(decrypt)}`);
 
     const resAuth = await adrAuth.findOne({
       raw: true,
@@ -284,7 +283,12 @@ exports.verifyToken = async function(req, res){
       device_id: decrypt.device_id,
       newToken: newToken
     }
-    return res.status(200).json(rsmg('000000', hasil))
+
+    if (page === 'next') {
+      next();
+    } else {
+      return res.status(200).json(rsmg('000000', hasil))
+    }
   }catch(e){
     logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/verify-token...'});
     return res.status(401).json(errMsg('90010'));
