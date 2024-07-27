@@ -349,7 +349,7 @@ exports.getLogout = async function (req, res) {
     const id = req.id;
 
     await adrAuth.update({
-      modified_dt: null,
+      modified_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
       modified_by: id,
       code: null,
       validate: 0
