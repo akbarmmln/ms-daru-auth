@@ -69,7 +69,7 @@ exports.getLogin = async function (req, res) {
       if (checkPin) {
         let dataAccount = await axios({
           method: 'GET',
-          url: process.env.MS_ACCOUNT_V1_URL + `/account/${account_id}`,
+          url: process.env.MS_ACCOUNT_V1_URL + `/account/check/${account_id}`,
         });
         if (dataAccount.data.code != '000000' && dataAccount.data.data != true) {
           return res.status(200).json(rsmg('90001', null));
