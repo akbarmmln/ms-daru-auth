@@ -64,6 +64,9 @@ exports.getLogin = async function (req, res) {
       if (!dataAccountLogin) {
         return res.status(200).json(rsmg('90002', null));
       }
+      if (dataAccountLogin.blocked == 1) {
+        throw '90011'
+      }
       const pinRegistered = dataAccountLogin.pin;
       const checkPin = await bcrypt.compare(pin, pinRegistered);
       if (checkPin) {

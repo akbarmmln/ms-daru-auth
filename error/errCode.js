@@ -10,6 +10,7 @@ const errCode = {
   '90008': 'missing parameter pin',
   '90009': 'missing parameter device id',
   '90010': 'verify token failed or not match',
+  '90011': 'akun ter-blokir',
 };
 
 module.exports = errCode;
