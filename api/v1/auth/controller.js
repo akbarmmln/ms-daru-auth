@@ -220,7 +220,8 @@ exports.getPostRegister = async function (req, res) {
           blok: blok,
           nomor_rumah: nomor_rumah,
           rt: rt,
-          rw: rw
+          rw: rw,
+          organitation_id: cekData[0].organitation_id
         }
       })
       if (hasilCreate.data.code != "000000") {
