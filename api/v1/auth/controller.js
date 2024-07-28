@@ -82,7 +82,9 @@ exports.getLogin = async function (req, res) {
           id: dataAccountLogin.account_id,
           kk: kk,
           device_id: deviceID,
-          partition: partition
+          partition: partition,
+          organitation_id: findVerif.organitation_id,
+          position_id: findVerif.position_id
         }
   
         const hash = await utils.enkrip(payloadEnkripsiLogin);
@@ -306,6 +308,8 @@ const verifyTokenMS = async function (token) {
     id: decrypt.id,
     kk: decrypt.kk,
     device_id: decrypt.device_id,
+    organitation_id: decrypt.organitation_id,
+    position_id: decrypt.position_id,
     partition: decrypt.partition
   };
   const hash = await utils.enkrip(newPayloadJWT);
@@ -323,6 +327,8 @@ const verifyTokenMS = async function (token) {
     kk: decrypt.kk,
     device_id: decrypt.device_id,
     partition: decrypt.partition,
+    organitation_id: decrypt.organitation_id,
+    position_id: decrypt.position_id,
     newToken: newToken
   }
   return hasil;
