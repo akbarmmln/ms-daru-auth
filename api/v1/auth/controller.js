@@ -154,6 +154,7 @@ exports.getPostRegister = async function (req, res) {
   try {
     const dateTime = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
     const tabelRegistered = (await firestore.collection('daru').doc('register_partition').get()).data();
+    console.log('tabelRegistered', JSON.stringify(tabelRegistered))
     const obj = tabelRegistered.partition.find(o => o.status);
     if (!obj) {
       throw '90005';
