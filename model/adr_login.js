@@ -16,6 +16,7 @@ const adrLogin = (partition) => {
 		pin: Sequelize.STRING,
 		available_counter: Sequelize.INTEGER,
 		next_available: Sequelize.DATE,
+		blocked: Sequelize.INTEGER,
 	}, {
 		freezeTableName: true,
 		timestamps: false,

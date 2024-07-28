@@ -78,7 +78,8 @@ exports.getLogin = async function (req, res) {
         const payloadEnkripsiLogin = {
           id: dataAccountLogin.account_id,
           kk: kk,
-          device_id: deviceID
+          device_id: deviceID,
+          partition: partition
         }
   
         const hash = await utils.enkrip(payloadEnkripsiLogin);
@@ -188,6 +189,7 @@ exports.getPostRegister = async function (req, res) {
         pin: pin,
         available_counter: null,
         next_available: null,
+        blocked: 0,
       }, { transaction: transaction })
 
       await adrVerifikasi.update({
@@ -265,8 +267,9 @@ exports.verifyTokenSelft = async function(req, res, next){
 }
 
 const verifyTokenMS = async function (token) {
-  let verifyRes = await utils.verify(token);
-  let decrypt = await utils.dekrip(verifyRes.masterKey, verifyRes.buffer);
+  const verifyRes = await utils.verify(token);
+  const decrypt = await utils.dekrip(verifyRes.masterKey, verifyRes.buffer);
+  const parts = decrypt.partition;
 
   const resAuth = await adrAuth.findOne({
     raw: true,
@@ -285,10 +288,22 @@ const verifyTokenMS = async function (token) {
     return res.status(401).json(errMsg('90010'));
   }
 
+  const tabelLogin = adrLogin(parts)
+  const resLogin = await tabelLogin.findOne({
+    raw: true,
+    where: {
+      account_id: decrypt.id
+    }
+  })
+  if (!resLogin || resLogin.blocked == 1) {
+    return res.status(401).json(errMsg('90010'));
+  }
+
   const newPayloadJWT = {
     id: decrypt.id,
     kk: decrypt.kk,
-    device_id: decrypt.device_id
+    device_id: decrypt.device_id,
+    partition: decrypt.partition
   };
   const hash = await utils.enkrip(newPayloadJWT);
   const sessionNewKey = hash.secretKey;
@@ -304,6 +319,7 @@ const verifyTokenMS = async function (token) {
     id: decrypt.id,
     kk: decrypt.kk,
     device_id: decrypt.device_id,
+    partition: decrypt.partition,
     newToken: newToken
   }
   return hasil;
