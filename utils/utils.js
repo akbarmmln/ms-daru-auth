@@ -38,8 +38,7 @@ exports.enkrip = async function (payload) {
 
     return {
       buffer: Buffer.concat([encrypted, tag, iv]).toString('base64'),
-      masterKey: encs,
-      secretKey: secretKey,
+      masterKey: encs
     }
   } catch (e) {
     logger.errorWithContext({message: 'error function enkrip...', error: e});

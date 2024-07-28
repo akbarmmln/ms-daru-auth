@@ -23,6 +23,8 @@ exports.getLogin = async function (req, res) {
     const kk = req.body.kk;
     const pin = req.body.pin;
     const deviceID = req.body.deviceID;
+    let sessionLogin = uuidv4();
+    sessionLogin = sessionLogin.replace(/-/g, "");
 
     if (formats.isEmpty(kk)) {
       throw '90007'
@@ -84,18 +86,14 @@ exports.getLogin = async function (req, res) {
           device_id: deviceID,
           partition: partition,
           organitation_id: findVerif.organitation_id,
-          position_id: findVerif.position_id
+          position_id: findVerif.position_id,
+          sessionLogin: sessionLogin
         }
   
-        const hash = await utils.enkrip(payloadEnkripsiLogin);
-        const sessionKey = hash.secretKey;
-        const validHash = {
-          buffer: hash.buffer,
-          masterKey: hash.masterKey    
-        }
-        const token = await utils.signin(validHash);
+        const hash = await utils.enkrip(payloadEnkripsiLogin);        
+        const token = await utils.signin(hash);
   
-        await codeAuth(account_id, 'login', sessionKey);
+        await codeAuth(account_id, 'login', sessionLogin);
 
         res.set('Access-Control-Expose-Headers', 'access-token');
         res.set('access-token', token);
@@ -275,6 +273,7 @@ const verifyTokenMS = async function (token) {
   const verifyRes = await utils.verify(token);
   const decrypt = await utils.dekrip(verifyRes.masterKey, verifyRes.buffer);
   const parts = decrypt.partition;
+  const sessionLogin = decrypt.sessionLogin;
 
   const resAuth = await adrAuth.findOne({
     raw: true,
@@ -289,7 +288,7 @@ const verifyTokenMS = async function (token) {
   }
 
   const sessionKey = resAuth.code;
-  if (sessionKey !== decrypt.dcs) {
+  if (sessionKey !== sessionLogin) {
     return res.status(401).json(errMsg('90010'));
   }
 
@@ -310,17 +309,11 @@ const verifyTokenMS = async function (token) {
     device_id: decrypt.device_id,
     organitation_id: decrypt.organitation_id,
     position_id: decrypt.position_id,
-    partition: decrypt.partition
+    partition: decrypt.partition,
+    sessionLogin: decrypt.sessionLogin
   };
   const hash = await utils.enkrip(newPayloadJWT);
-  const sessionNewKey = hash.secretKey;
-  const validHash = {
-    buffer: hash.buffer,
-    masterKey: hash.masterKey    
-  }
-  const newToken = await utils.signin(validHash);
-
-  await codeAuth(decrypt.id, 'login', sessionNewKey);
+  const newToken = await utils.signin(hash);
 
   const hasil = {
     id: decrypt.id,
