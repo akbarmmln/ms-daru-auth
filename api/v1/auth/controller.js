@@ -159,6 +159,7 @@ exports.getPostRegister = async function (req, res) {
       throw '90005';
     }
     const partition = obj.table;
+    console.log('adsadsadasdsad', partition)
     const tabelLogin = adrLogin(partition)
 
     const id = `${uuidv4()}-${partition}`;
