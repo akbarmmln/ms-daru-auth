@@ -20,6 +20,7 @@ const errMsg = require('../../../error/resError');
 
 exports.getLogin = async function (req, res) {
   try {
+    const newDate = moment().format('YYYY-MM-DD HH:mm:ss')
     const kk = req.body.kk;
     const pin = req.body.pin;
     const deviceID = req.body.deviceID;
@@ -69,6 +70,22 @@ exports.getLogin = async function (req, res) {
       if (dataAccountLogin.blocked == 1) {
         throw '90011'
       }
+
+      if (dataAccountLogin.available_counter >= 3) {
+        if (moment(newDate).isSameOrBefore(dataAccountLogin.next_available)) {
+          throw '90012'
+        }
+
+        await tabelLogin.update({
+          available_counter: null,
+          next_available: null
+        }, {
+          where: {
+            id: dataAccountLogin.id
+          }
+        })
+      }
+
       const pinRegistered = dataAccountLogin.pin;
       const checkPin = await bcrypt.compare(pin, pinRegistered);
       if (checkPin) {
@@ -95,11 +112,34 @@ exports.getLogin = async function (req, res) {
   
         await codeAuth(account_id, 'login', sessionLogin);
 
+        await tabelLogin.update({
+          available_counter: null,
+          next_available: null
+        }, {
+          where: {
+            id: dataAccountLogin.id
+          }
+        })
+
         res.set('Access-Control-Expose-Headers', 'access-token');
         res.set('access-token', token);
   
         return res.status(200).json(rsmg('000000', {}));
       } else {
+        let availCounter = dataAccountLogin.available_counter;
+        availCounter = formats.isEmpty(availCounter) || parseInt(availCounter) >= 3 ? 0 : availCounter
+        const newAvailCounter = parseInt(availCounter) + 1;
+        const next_available = newAvailCounter == 3 ? moment(newDate).add(3, 'h').format('YYYY-MM-DD HH:mm:ss') : null;
+        
+        await tabelLogin.update({
+          available_counter: newAvailCounter,
+          next_available: next_available
+        }, {
+          where: {
+            id: dataAccountLogin.id
+          }
+        })
+
         throw '90003'
       }
     } else {

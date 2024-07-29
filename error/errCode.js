@@ -11,6 +11,7 @@ const errCode = {
   '90009': 'missing parameter device id',
   '90010': 'verify token failed or not match',
   '90011': 'akun ter-blokir',
+  '90012': 'coba lagi nanti',
 };
 
 module.exports = errCode;
