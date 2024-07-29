@@ -10,7 +10,7 @@ function resError(code, e, messageErr = '') {
     err_msg: format.isEmpty(messageCode) ? messageErr : messageCode,
     err_msg2: e,
     language: 'EN',
-    timestamp: format.getCurrentTimeInJakarta(moment().format('YYYY-MM-DD HH:mm:ss'))
+    timestamp: format.getCurrentTimeInJakarta(moment().format())
   }
 }
 
