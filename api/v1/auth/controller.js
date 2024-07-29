@@ -133,7 +133,7 @@ exports.getLogin = async function (req, res) {
 
         await tabelLogin.update({
           available_counter: newAvailCounter,
-          next_available: next_available
+          next_available: moment(next_available).format('YYYY-MM-DD HH:mm:ss')
         }, {
           where: {
             id: dataAccountLogin.id
