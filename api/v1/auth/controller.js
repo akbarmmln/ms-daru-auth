@@ -73,7 +73,7 @@ exports.getLogin = async function (req, res) {
 
       if (dataAccountLogin.available_counter >= 3) {
         if (moment(newDate).isSameOrBefore(dataAccountLogin.next_available)) {
-          return res.status(400).json(errMsg('90012', dataAccountLogin.next_available))
+          return res.status(400).json(errMsg('90012', moment(dataAccountLogin.next_available).format('YYYY-MM-DD HH:mm:ss')))
         }
 
         await tabelLogin.update({
@@ -141,7 +141,7 @@ exports.getLogin = async function (req, res) {
         })
 
         if (newAvailCounter >= 3) {
-          return res.status(400).json(errMsg('90012', next_available))
+          return res.status(400).json(errMsg('90012', moment(next_available).format('YYYY-MM-DD HH:mm:ss')))
         }
 
         throw '90003'
