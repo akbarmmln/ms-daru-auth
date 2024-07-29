@@ -140,7 +140,7 @@ exports.getLogin = async function (req, res) {
           }
         })
 
-        if (next_available >= 3) {
+        if (newAvailCounter >= 3) {
           return res.status(400).json(errMsg('90012', dataAccountLogin.next_available))
         }
 
