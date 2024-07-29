@@ -130,10 +130,6 @@ exports.getLogin = async function (req, res) {
         availCounter = formats.isEmpty(availCounter) || parseInt(availCounter) >= 3 ? 0 : availCounter
         const newAvailCounter = parseInt(availCounter) + 1;
         const next_available = newAvailCounter == 3 ? moment(newDate).add(3, 'h').format('YYYY-MM-DD HH:mm:ss') : null;
-        
-        if (next_available >= 3) {
-          return res.status(400).json(errMsg('90012', dataAccountLogin.next_available))
-        }
 
         await tabelLogin.update({
           available_counter: newAvailCounter,
@@ -143,6 +139,10 @@ exports.getLogin = async function (req, res) {
             id: dataAccountLogin.id
           }
         })
+
+        if (next_available >= 3) {
+          return res.status(400).json(errMsg('90012', dataAccountLogin.next_available))
+        }
 
         throw '90003'
       }
