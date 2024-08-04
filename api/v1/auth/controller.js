@@ -351,21 +351,16 @@ const verifyTokenMS = async function (token) {
     id: decrypt.id,
     kk: decrypt.kk,
     device_id: decrypt.device_id,
+    partition: decrypt.partition,
     organitation_id: decrypt.organitation_id,
     position_id: decrypt.position_id,
-    partition: decrypt.partition,
     sessionLogin: decrypt.sessionLogin
   };
   const hash = await utils.enkrip(newPayloadJWT);
   const newToken = await utils.signin(hash);
 
   const hasil = {
-    id: decrypt.id,
-    kk: decrypt.kk,
-    device_id: decrypt.device_id,
-    partition: decrypt.partition,
-    organitation_id: decrypt.organitation_id,
-    position_id: decrypt.position_id,
+    ...newPayloadJWT,
     newToken: newToken
   }
   return hasil;
