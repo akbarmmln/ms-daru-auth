@@ -150,8 +150,8 @@ exports.getLogin = async function (req, res) {
       return res.status(200).json(rsmg('90002', null));
     }
   } catch (e) {
-    logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth...'})
-    return utils.returnErrorFunction(res, 'error POST /api/v1/auth...', e);
+    logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/login...'})
+    return utils.returnErrorFunction(res, 'error POST /api/v1/auth/login...', e);
   }
 }
 
@@ -306,6 +306,7 @@ exports.verifyTokenSelft = async function(req, res, next){
 
     const hasil = await verifyTokenMS(token);
     req.id = hasil.id;
+    req.parts = hasil.partition;
     return next();
   }catch(e){
     logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/verify-token...'});
@@ -418,7 +419,30 @@ exports.getLogout = async function (req, res) {
 
     return res.status(200).json(rsmg('000000', {}))
   } catch (e) {
-    logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/logout...'});
-    return utils.returnErrorFunction(res, 'error POST /api/v1/auth/logout...', e);
+    logger.errorWithContext({ error: e, message: 'error GET /api/v1/auth/logout...'});
+    return utils.returnErrorFunction(res, 'error GET /api/v1/auth/logout...', e);
+  }
+}
+
+exports.lupaPin = async function (req, res) {
+  try {
+    const id = req.id;
+    const parts = req.parts
+    let pin = req.body.pin;
+    pin = await bcrypt.hash(pin, saltRounds);
+
+    const tabelLogin = adrLogin(parts)
+    await tabelLogin.update({
+      pin: pin
+    }, {
+      where: {
+        id: id
+      }
+    })
+
+    return res.status(200).json(rsmg('000000'));
+  } catch (e) {
+    logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/lupa-pin...'});
+    return utils.returnErrorFunction(res, 'error POST /api/v1/auth/lupa-pin...', e);
   }
 }

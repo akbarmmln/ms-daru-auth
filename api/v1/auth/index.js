@@ -12,4 +12,6 @@ router.post('/post-register', controller.getPostRegister);
 
 router.get('/verify-token', controller.verifyToken);
 
+router.post('/lupa-pin', controller.verifyTokenSelft, controller.lupaPin);
+
 module.exports = router;
