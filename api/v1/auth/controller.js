@@ -424,7 +424,7 @@ exports.getLogout = async function (req, res) {
   }
 }
 
-exports.lupaPin = async function (req, res) {
+exports.ubahPin = async function (req, res) {
   try {
     const id = req.id;
     const parts = req.parts
@@ -442,7 +442,49 @@ exports.lupaPin = async function (req, res) {
 
     return res.status(200).json(rsmg('000000'));
   } catch (e) {
-    logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/lupa-pin...'});
+    logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/ubah-pin...'});
+    return utils.returnErrorFunction(res, 'error POST /api/v1/auth/ubah-pin...', e);
+  }
+}
+
+exports.lupaPin = async function (req, res) {
+  try {
+    const kk = req.body.kk;
+    let pin = req.body.pin;
+    pin = await bcrypt.hash(pin, saltRounds);
+
+    const findVerif = await adrVerifikasi.findOne({
+      raw: true,
+      where: {
+        kk: kk
+      }
+    })
+    if (!findVerif) {
+      return res.status(200).json(rsmg('90001', null));
+    }
+
+    const account_id = findVerif.account_id;
+    if (formats.isEmpty(account_id)) {
+      return res.status(200).json(rsmg('90002', null));
+    }
+
+    const splitId = account_id.split('-');
+    const splitIdLenght = splitId.length
+    const partition = splitId[splitIdLenght - 1]
+
+    const tabelLogin = adrLogin(partition)
+    await tabelLogin.update({
+      pin: pin,
+      modified_dt: formats.getCurrentTimeInJakarta(moment().format('YYYY-MM-DD HH:mm:ss.SSS')),
+      modified_by: account_id,
+    }, {
+      where: {
+        account_id: account_id
+      }
+    })
+    return res.status(200).json(rsmg('000000'));
+  } catch (e) {
+    logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/lupa-pin...' });
     return utils.returnErrorFunction(res, 'error POST /api/v1/auth/lupa-pin...', e);
   }
 }
