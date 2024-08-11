@@ -270,6 +270,15 @@ exports.getPostRegister = async function (req, res) {
       if (hasilCreate.data.code != "000000") {
         return res.status(200).json(hasilCreate.data);
       }
+
+      await axios({
+        method: 'POST',
+        url: process.env.MS_PAYMENT_V1_URL + '/transaction/create-va',
+        data: {
+          id: id
+        }
+      })
+      
       await transaction.commit();
       return res.status(200).json(rsmg('000000', {}));
     } else if (cekData.length > 0 && cekData[0].is_registered == 1) {
