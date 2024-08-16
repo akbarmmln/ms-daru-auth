@@ -3,12 +3,11 @@ const errMsg = require('../error/resError');
 const crypto = require('node:crypto');
 const uuidv4 = require('uuid').v4;
 const jwt = require('jsonwebtoken');
+const BaseError = require('../error/baseError');
 
 exports.returnErrorFunction = function (resObject, errorMessageLogger, errorObject) {
-  if (typeof errorObject === 'string') {
-    return resObject.status(400).json(errMsg(errorObject));
-  } else if (errorObject.error) {
-    return resObject.status(500).json(errorObject.error);
+  if (errorObject instanceof BaseError) {
+    return resObject.status(errorObject.statusCode).json(errMsg(errorObject.errorCode, errorObject.description, errorObject?.errorDetails));
   } else {
     return resObject.status(500).json(errMsg('10000'));
   }
@@ -82,10 +81,22 @@ exports.verify = async function (token) {
       publicKey.replace(/\\n/gm, '\n'),
       options
     );
-    return userToken;
+    return {
+      status: 200,
+      userToken: userToken
+    };
   } catch (e) {
-    logger.errorWithContext({message: 'error function verify...', error: e});
-    throw e
+    if (e?.name == 'TokenExpiredError') {
+      return {
+        status: 400,
+        userToken: null
+      };
+    } else {
+      return {
+        status: 401,
+        userToken: null
+      };
+    }
   }
 }
 

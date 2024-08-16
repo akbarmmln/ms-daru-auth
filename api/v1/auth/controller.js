@@ -17,6 +17,8 @@ const axios = require('axios');
 const {fire} = require("../../../config/firebase");
 const firestore = fire.firestore();
 const errMsg = require('../../../error/resError');
+const ApiErrorMsg = require('../../../error/apiErrorMsg')
+const HttpStatusCode = require("../../../error/httpStatusCode");
 
 exports.getLogin = async function (req, res) {
   try {
@@ -28,13 +30,13 @@ exports.getLogin = async function (req, res) {
     sessionLogin = sessionLogin.replace(/-/g, "");
 
     if (formats.isEmpty(kk)) {
-      throw '90007'
+      throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '90007');
     }
     if (formats.isEmpty(pin)) {
-      throw '90008'
+      throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '90008');
     }
     if (formats.isEmpty(deviceID)) {
-      throw '90009'
+      throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '90009');
     }
     
     const findVerif = await adrVerifikasi.findOne({
@@ -68,12 +70,12 @@ exports.getLogin = async function (req, res) {
         return res.status(200).json(rsmg('90002', null));
       }
       if (dataAccountLogin.blocked == 1) {
-        throw '90011'
+        throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '90011');
       }
 
       if (dataAccountLogin.available_counter >= 3) {
         if (moment(newDate).isSameOrBefore(dataAccountLogin.next_available)) {
-          return res.status(400).json(errMsg('90012', formats.getCurrentTimeInJakarta(dataAccountLogin.next_available)))
+          throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '90012', formats.getCurrentTimeInJakarta(dataAccountLogin.next_available));
         }
 
         await tabelLogin.update({
@@ -147,10 +149,9 @@ exports.getLogin = async function (req, res) {
         })
 
         if (newAvailCounter >= 3) {
-          return res.status(400).json(errMsg('90012', formats.getCurrentTimeInJakarta(next_available)))
+          throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '90012', formats.getCurrentTimeInJakarta(next_available));
         }
-
-        throw '90003'
+        throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '90003');
       }
     } else {
       return res.status(200).json(rsmg('90002', null));
@@ -206,7 +207,7 @@ exports.getPostRegister = async function (req, res) {
     const tabelRegistered = (await firestore.collection('daru').doc('register_partition').get()).data();
     const obj = tabelRegistered.partition.find(o => o.status);
     if (!obj) {
-      throw '90005';
+      throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '90005');
     }
     const partition = obj.table;
     const tabelLogin = adrLogin(partition)
@@ -304,34 +305,39 @@ exports.getPostRegister = async function (req, res) {
 exports.verifyToken = async function(req, res){
   try{
     const token = req.headers['access-token'];
-    if (!token) return res.status(401).json(errMsg('90006'));
+    if (!token) throw new ApiErrorMsg(HttpStatusCode.UNAUTHORIZED, '90006');
 
     const hasil = await verifyTokenMS(token);
     return res.status(200).json(rsmg('000000', hasil))
   }catch(e){
-    logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/verify-token...'});
-    return res.status(401).json(errMsg('90010'));
+    logger.errorWithContext({ error: e, message: 'error GET /api/v1/auth/verify-token...'});
+    return utils.returnErrorFunction(res, 'error POST GET /api/v1/auth/verify-token...', e);
   }
 }
 
 exports.verifyTokenSelft = async function(req, res, next){
   try{
     const token = req.headers['access-token'];
-    if (!token) return res.status(401).json(errMsg('90006'));
+    if (!token) throw new ApiErrorMsg(HttpStatusCode.UNAUTHORIZED, '90006');
 
     const hasil = await verifyTokenMS(token);
     req.id = hasil.id;
     req.parts = hasil.partition;
     return next();
   }catch(e){
-    logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/verify-token...'});
-    return res.status(401).json(errMsg('90010'));
+    logger.errorWithContext({ error: e, message: 'error verifyTokenSelft...'});
+    return utils.returnErrorFunction(res, 'error verifyTokenSelft...', e);
   }
 }
 
 const verifyTokenMS = async function (token) {
   const verifyRes = await utils.verify(token);
-  const decrypt = await utils.dekrip(verifyRes.masterKey, verifyRes.buffer);
+  if (verifyRes.status == 400) {
+    throw new ApiErrorMsg(HttpStatusCode.UNAUTHORIZED, '90013');
+  } else if (verifyRes.status == 401){
+    throw new ApiErrorMsg(HttpStatusCode.UNAUTHORIZED, '90010');
+  }
+  const decrypt = await utils.dekrip(verifyRes.userToken.masterKey, verifyRes.userToken.buffer);
   const parts = decrypt.partition;
   const sessionLogin = decrypt.sessionLogin;
 
@@ -344,12 +350,12 @@ const verifyTokenMS = async function (token) {
   });
   
   if (!resAuth || resAuth?.validate != 1) {
-    return res.status(401).json(errMsg('90010'));
+    throw new ApiErrorMsg(HttpStatusCode.UNAUTHORIZED, '90010');
   }
 
   const sessionKey = resAuth.code;
   if (sessionKey !== sessionLogin) {
-    return res.status(401).json(errMsg('90010'));
+    throw new ApiErrorMsg(HttpStatusCode.UNAUTHORIZED, '90010');
   }
 
   const tabelLogin = adrLogin(parts)
@@ -360,7 +366,7 @@ const verifyTokenMS = async function (token) {
     }
   })
   if (!resLogin || resLogin.blocked == 1) {
-    return res.status(401).json(errMsg('90010'));
+    throw new ApiErrorMsg(HttpStatusCode.UNAUTHORIZED, '90010');
   }
 
   const newPayloadJWT = {

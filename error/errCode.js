@@ -12,6 +12,7 @@ const errCode = {
   '90010': 'verify token failed or not match',
   '90011': 'akun ter-blokir',
   '90012': 'login blocked',
+  '90013': 'token expired',
 };
 
 module.exports = errCode;
