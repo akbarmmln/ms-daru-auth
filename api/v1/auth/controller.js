@@ -77,6 +77,8 @@ exports.getLogin = async function (req, res) {
         }
 
         await tabelLogin.update({
+          modified_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+          modified_by: account_id,
           available_counter: null,
           next_available: null
         }, {
@@ -113,6 +115,8 @@ exports.getLogin = async function (req, res) {
         await codeAuth(account_id, 'login', sessionLogin);
 
         await tabelLogin.update({
+          modified_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+          modified_by: account_id,
           available_counter: null,
           next_available: null
         }, {
@@ -132,6 +136,8 @@ exports.getLogin = async function (req, res) {
         const next_available = newAvailCounter == 3 ? moment(newDate).add(3, 'h').format('YYYY-MM-DD HH:mm:ss') : null;
 
         await tabelLogin.update({
+          modified_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+          modified_by: account_id,
           available_counter: newAvailCounter,
           next_available: next_available
         }, {
