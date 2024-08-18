@@ -10,7 +10,7 @@ router.post('/pre-register', controller.getPreRegister);
 
 router.post('/post-register', controller.getPostRegister);
 
-router.get('/verify-token', controller.verifyToken);
+router.post('/verify-token', controller.verifyToken);
 
 router.post('/ubah-pin', controller.verifyTokenSelft, controller.ubahPin);
 

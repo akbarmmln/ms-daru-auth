@@ -127,8 +127,7 @@ exports.getLogin = async function (req, res) {
           }
         })
 
-        res.set('Access-Control-Expose-Headers', 'access-token');
-        res.set('access-token', token);
+        res.header('access-token', token);
   
         return res.status(200).json(rsmg('000000', {}));
       } else {
@@ -305,9 +304,10 @@ exports.getPostRegister = async function (req, res) {
 exports.verifyToken = async function(req, res){
   try{
     const token = req.headers['access-token'];
+    const ignoreExpr = req.body.ignoreExpr;
     if (!token) throw new ApiErrorMsg(HttpStatusCode.UNAUTHORIZED, '90006');
 
-    const hasil = await verifyTokenMS(token);
+    const hasil = await newVerifyTokenMS(token, ignoreExpr);
     return res.status(200).json(rsmg('000000', hasil))
   }catch(e){
     logger.errorWithContext({ error: e, message: 'error GET /api/v1/auth/verify-token...'});
@@ -318,9 +318,13 @@ exports.verifyToken = async function(req, res){
 exports.verifyTokenSelft = async function(req, res, next){
   try{
     const token = req.headers['access-token'];
+    let ignoreExpr = req.body.ignoreExpr;
+    if (!ignoreExpr) {
+      ignoreExpr = false;
+    }
     if (!token) throw new ApiErrorMsg(HttpStatusCode.UNAUTHORIZED, '90006');
 
-    const hasil = await verifyTokenMS(token);
+    const hasil = await newVerifyTokenMS(token, ignoreExpr);
     req.id = hasil.id;
     req.parts = hasil.partition;
     return next();
@@ -328,6 +332,34 @@ exports.verifyTokenSelft = async function(req, res, next){
     logger.errorWithContext({ error: e, message: 'error verifyTokenSelft...'});
     return utils.returnErrorFunction(res, 'error verifyTokenSelft...', e);
   }
+}
+
+const newVerifyTokenMS = async function (token, ignoreExpr) {
+  const verifyRes = await utils.verify(token, ignoreExpr);
+  if (verifyRes.status == 400) {
+    throw new ApiErrorMsg(HttpStatusCode.UNAUTHORIZED, '90013');
+  } else if (verifyRes.status == 401){
+    throw new ApiErrorMsg(HttpStatusCode.UNAUTHORIZED, '90010');
+  }
+  const decrypt = await utils.dekrip(verifyRes.userToken.masterKey, verifyRes.userToken.buffer);
+
+  const newPayloadJWT = {
+    id: decrypt.id,
+    kk: decrypt.kk,
+    device_id: decrypt.device_id,
+    partition: decrypt.partition,
+    organitation_id: decrypt.organitation_id,
+    position_id: decrypt.position_id,
+    sessionLogin: decrypt.sessionLogin
+  };
+  const hash = await utils.enkrip(newPayloadJWT);
+  const newToken = await utils.signin(hash);
+
+  const hasil = {
+    ...newPayloadJWT,
+    newToken: newToken
+  }
+  return hasil;
 }
 
 const verifyTokenMS = async function (token) {
