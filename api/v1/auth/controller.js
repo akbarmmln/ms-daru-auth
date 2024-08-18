@@ -304,7 +304,10 @@ exports.getPostRegister = async function (req, res) {
 exports.verifyToken = async function(req, res){
   try{
     const token = req.headers['access-token'];
-    const ignoreExpr = req.body.ignoreExpr;
+    let ignoreExpr = req.body.ignoreExpr;
+    if (!ignoreExpr) {
+      ignoreExpr = false;
+    }
     if (!token) throw new ApiErrorMsg(HttpStatusCode.UNAUTHORIZED, '90006');
 
     const hasil = await newVerifyTokenMS(token, ignoreExpr);
