@@ -24,9 +24,9 @@ router.all('/api/*', (req, res, next) => {
 })
 
 fs.readdirSync(location())
-.forEach(file => {
-    const path = `/${location(file)}`;
-    router.use(path, require(`.${path}`));
-});
+    .forEach(file => {
+        const path = `/${location(file)}`;
+        router.use(path, require(`.${path}`));
+    });
 
 module.exports = router;
