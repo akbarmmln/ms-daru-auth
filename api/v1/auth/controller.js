@@ -127,6 +127,7 @@ exports.getLogin = async function (req, res) {
           }
         })
 
+        res.set('Access-Control-Expose-Headers', 'access-token');
         res.header('access-token', token);
   
         return res.status(200).json(rsmg('000000', {}));
@@ -308,6 +309,7 @@ exports.verifyToken = async function(req, res){
     if (!token) throw new ApiErrorMsg(HttpStatusCode.UNAUTHORIZED, '90006');
 
     const hasil = await newVerifyTokenMS(token, ignoreExpr);
+    res.set('Access-Control-Expose-Headers', 'new-access-token');
     res.header('new-access-token', hasil.newToken);
     return res.status(200).json(rsmg('000000', hasil))
   }catch(e){
@@ -328,6 +330,7 @@ exports.verifyTokenSelft = async function(req, res, next){
     const hasil = await newVerifyTokenMS(token, ignoreExpr);
     req.id = hasil.id;
     req.parts = hasil.partition;
+    res.set('Access-Control-Expose-Headers', 'new-access-token');
     res.header('new-access-token', hasil.newToken);
     return next();
   }catch(e){
