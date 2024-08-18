@@ -308,6 +308,7 @@ exports.verifyToken = async function(req, res){
     if (!token) throw new ApiErrorMsg(HttpStatusCode.UNAUTHORIZED, '90006');
 
     const hasil = await newVerifyTokenMS(token, ignoreExpr);
+    res.header('new-access-token', hasil.newToken);
     return res.status(200).json(rsmg('000000', hasil))
   }catch(e){
     logger.errorWithContext({ error: e, message: 'error GET /api/v1/auth/verify-token...'});
@@ -327,6 +328,7 @@ exports.verifyTokenSelft = async function(req, res, next){
     const hasil = await newVerifyTokenMS(token, ignoreExpr);
     req.id = hasil.id;
     req.parts = hasil.partition;
+    res.header('new-access-token', hasil.newToken);
     return next();
   }catch(e){
     logger.errorWithContext({ error: e, message: 'error verifyTokenSelft...'});
