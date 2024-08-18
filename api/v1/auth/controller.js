@@ -127,7 +127,6 @@ exports.getLogin = async function (req, res) {
           }
         })
 
-        res.set('Access-Control-Expose-Headers', 'access-token');
         res.header('access-token', token);
   
         return res.status(200).json(rsmg('000000', {}));
