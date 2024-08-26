@@ -568,8 +568,16 @@ exports.refreshToken = async function (req, res) {
     const token = req.headers['refresh-token'];
     if (!token) throw new ApiErrorMsg(HttpStatusCode.UNAUTHORIZED, '90014');
 
-    const account_id = req.decrypt.id;
+    const verifyRes = await utils.verifyRefresh(token);
+    const decrypt = await utils.dekripRefresh(verifyRes.masterKey, verifyRes.buffer);
 
+    const account_id = decrypt.id;
+    const auth_refresh = decrypt.authRefresh;
+    const splitId = account_id.split('-');
+    const splitIdLenght = splitId.length
+    const partition = splitId[splitIdLenght - 1]
+
+    
     const checkData = await adrAuth.findOne({
       raw: true,
       where: {
@@ -582,30 +590,49 @@ exports.refreshToken = async function (req, res) {
       throw new ApiErrorMsg(HttpStatusCode.UNAUTHORIZED, '90010');
     }
     
-    if (checkData.refresh_token !== token) {
+    if (checkData.refresh_token !== auth_refresh) {
+      throw new ApiErrorMsg(HttpStatusCode.UNAUTHORIZED, '90010');
+    }
+
+    const dataAkun = await adrVerifikasi.findOne({
+      raw: true,
+      where: {
+        account_id: account_id,
+      }
+    })
+
+    if (!dataAkun) {
       throw new ApiErrorMsg(HttpStatusCode.UNAUTHORIZED, '90010');
     }
 
     const desiredLength = formats.generateRandomValue(15,20);
-    const refreshToken = utils.shortID(desiredLength);
+    const authRefresh = utils.shortID(desiredLength);
 
     const payloadEnkripsiLogin = {
-      id: req.decrypt.id,
-      kk: req.decrypt.kk,
-      device_id: req.decrypt.device_id,
-      partition: req.decrypt.partition,
-      organitation_id: req.decrypt.organitation_id,
-      position_id: req.decrypt.position_id,
-      sessionLogin: req.decrypt.sessionLogin
+      id: decrypt.id,
+      kk: dataAkun.kk,
+      device_id: decrypt.device_id,
+      partition: partition,
+      organitation_id: dataAkun.organitation_id,
+      position_id: dataAkun.position_id,
+      sessionLogin: checkData.code
     }
     const hash = await utils.enkrip(payloadEnkripsiLogin);        
-    const newJWT = await utils.signin(hash);
+    const newAccessToken = await utils.signin(hash);
 
-    await codeAuth(account_id, 'login', req.decrypt.sessionLogin, refreshToken);
+    const payloadEnkripsiRefresh = {
+      id: account_id,
+      device_id: decrypt.device_id,
+      authRefresh: authRefresh
+    }
+    const hashRefresh = await utils.enkripRefresh(payloadEnkripsiRefresh);        
+    const tokenRefresh = await utils.signinRefresh(hashRefresh);
+
+    await codeAuth(account_id, 'login', checkData.code, authRefresh);
 
     return res.status(200).json(rsmg('000000', {
-      access_token: newJWT,
-      refresh_token: refreshToken
+      access_token: newAccessToken,
+      refresh_token: tokenRefresh
     }));
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/refresh-token...' });

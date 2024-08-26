@@ -216,7 +216,7 @@ exports.verifyRefresh = async function (token) {
     return userToken;
   } catch (e) {
     logger.errorWithContext({message: 'error function verify refresh...', error: e});
-    return null;
+    throw e
   }
 }
 
