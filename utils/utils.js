@@ -4,6 +4,7 @@ const crypto = require('node:crypto');
 const uuidv4 = require('uuid').v4;
 const jwt = require('jsonwebtoken');
 const BaseError = require('../error/baseError');
+const shortUuid = require('short-uuid');
 
 exports.returnErrorFunction = function (resObject, errorMessageLogger, errorObject) {
   if (errorObject instanceof BaseError) {
@@ -131,4 +132,15 @@ exports.dekrip = async function (masterkey, data) {
     logger.errorWithContext({message: 'error function dekrip...', error: e});
     throw e
   }
+}
+
+exports.shortID = function (length) {
+  const customAlphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  const translator = shortUuid(customAlphabet);
+  const shortId = translator.new();
+
+  if (length) {
+    return shortId.slice(0, length).padEnd(length, customAlphabet.charAt(0));
+  }
+  return shortId;
 }

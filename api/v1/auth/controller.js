@@ -19,6 +19,7 @@ const firestore = fire.firestore();
 const errMsg = require('../../../error/resError');
 const ApiErrorMsg = require('../../../error/apiErrorMsg')
 const HttpStatusCode = require("../../../error/httpStatusCode");
+const { where } = require('sequelize');
 
 exports.getLogin = async function (req, res) {
   try {
@@ -39,6 +40,9 @@ exports.getLogin = async function (req, res) {
       throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '90009');
     }
     
+    const desiredLength = formats.generateRandomValue(15,20);
+    const refreshToken = utils.shortID(desiredLength);
+
     const findVerif = await adrVerifikasi.findOne({
       raw: true,
       where: {
@@ -114,7 +118,7 @@ exports.getLogin = async function (req, res) {
         const hash = await utils.enkrip(payloadEnkripsiLogin);        
         const token = await utils.signin(hash);
   
-        await codeAuth(account_id, 'login', sessionLogin);
+        await codeAuth(account_id, 'login', sessionLogin, refreshToken);
 
         await tabelLogin.update({
           modified_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
@@ -128,7 +132,8 @@ exports.getLogin = async function (req, res) {
         })
 
         res.header('access-token', token);
-  
+        res.header('refresh-token', refreshToken);
+
         return res.status(200).json(rsmg('000000', {}));
       } else {
         let availCounter = dataAccountLogin.available_counter;
@@ -331,6 +336,7 @@ exports.verifyTokenSelft = async function(req, res, next){
     const hasil = await newVerifyTokenMS(token, ignoreExpr);
     req.id = hasil.id;
     req.parts = hasil.partition;
+    req.decrypt = hasil
     res.header('access-token', hasil.access_token);
     return next();
   }catch(e){
@@ -425,7 +431,7 @@ const verifyTokenMS = async function (token) {
   return hasil;
 }
 
-const codeAuth = async function (account_id, type, code) {
+const codeAuth = async function (account_id, type, code, refreshToken = null) {
   let authRecord = await adrAuth.findOne({
     where: {
       account_id: account_id,
@@ -445,6 +451,7 @@ const codeAuth = async function (account_id, type, code) {
       code: code,
       type: type,
       validate: 1,
+      refresh_token: refreshToken
     })
   } else {
     await adrAuth.update({
@@ -452,6 +459,7 @@ const codeAuth = async function (account_id, type, code) {
       modified_by: account_id,
       validate: 1,
       code: code,
+      refresh_token: refreshToken
     }, {
       where: {
         id: authRecord.id
@@ -552,7 +560,45 @@ exports.refreshToken = async function (req, res) {
     const token = req.headers['refresh-token'];
     if (!token) throw new ApiErrorMsg(HttpStatusCode.UNAUTHORIZED, '90014');
 
-    return res.status(200).json(rsmg());
+    const account_id = req.decrypt.id;
+
+    const checkData = await adrAuth.findOne({
+      raw: true,
+      where: {
+        account_id: account_id,
+        type: 'login'
+      }
+    })
+
+    if (!checkData) {
+      throw new ApiErrorMsg(HttpStatusCode.UNAUTHORIZED, '90010');
+    }
+    
+    if (checkData.refresh_token !== token) {
+      throw new ApiErrorMsg(HttpStatusCode.UNAUTHORIZED, '90010');
+    }
+
+    const desiredLength = formats.generateRandomValue(15,20);
+    const refreshToken = utils.shortID(desiredLength);
+
+    const payloadEnkripsiLogin = {
+      id: req.decrypt.id,
+      kk: req.decrypt.kk,
+      device_id: req.decrypt.device_id,
+      partition: req.decrypt.partition,
+      organitation_id: req.decrypt.organitation_id,
+      position_id: req.decrypt.position_id,
+      sessionLogin: req.decrypt.sessionLogin
+    }
+    const hash = await utils.enkrip(payloadEnkripsiLogin);        
+    const newJWT = await utils.signin(hash);
+
+    await codeAuth(account_id, 'login', req.decrypt.sessionLogin, refreshToken);
+
+    return res.status(200).json(rsmg('000000', {
+      access_token: newJWT,
+      refresh_token: refreshToken
+    }));
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/refresh-token...' });
     return utils.returnErrorFunction(res, 'error POST /api/v1/auth/refresh-token...', e);

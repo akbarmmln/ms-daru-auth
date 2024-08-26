@@ -15,6 +15,7 @@ const adrAuth = dbConnection.define('adr_auth', {
   code: Sequelize.STRING,
   type: Sequelize.STRING,
   validate: Sequelize.INTEGER,
+  refresh_token: Sequelize.STRING,
 }, {
   freezeTableName: true,
   timestamps: false,

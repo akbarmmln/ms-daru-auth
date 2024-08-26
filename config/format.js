@@ -46,3 +46,12 @@ exports.isEmpty = function (data) {
         return false;
     }
 }
+
+exports.generateRandomValue = function (min, max) {
+    // Ensure min and max are integers
+    min = Math.ceil(min);
+    max = Math.floor(max);
+
+    // Generate a random integer between min and max (inclusive)
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
