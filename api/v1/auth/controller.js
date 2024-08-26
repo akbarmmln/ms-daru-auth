@@ -546,3 +546,15 @@ exports.lupaPin = async function (req, res) {
     return utils.returnErrorFunction(res, 'error POST /api/v1/auth/lupa-pin...', e);
   }
 }
+
+exports.refreshToken = async function (req, res) {
+  try {
+    const token = req.headers['refresh-token'];
+    if (!token) throw new ApiErrorMsg(HttpStatusCode.UNAUTHORIZED, '90014');
+
+    return res.status(200).json(rsmg());
+  } catch (e) {
+    logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/refresh-token...' });
+    return utils.returnErrorFunction(res, 'error POST /api/v1/auth/refresh-token...', e);
+  }
+}

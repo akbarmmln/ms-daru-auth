@@ -13,6 +13,7 @@ const errCode = {
   '90011': 'akun ter-blokir',
   '90012': 'login blocked',
   '90013': 'token expired',
+  '90014': 'missing parameter refresh token',
 };
 
 module.exports = errCode;
