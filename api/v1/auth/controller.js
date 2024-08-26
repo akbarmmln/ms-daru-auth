@@ -41,7 +41,7 @@ exports.getLogin = async function (req, res) {
     }
     
     const desiredLength = formats.generateRandomValue(15,20);
-    const refreshToken = utils.shortID(desiredLength);
+    const authRefresh = utils.shortID(desiredLength);
 
     const findVerif = await adrVerifikasi.findOne({
       raw: true,
@@ -117,8 +117,16 @@ exports.getLogin = async function (req, res) {
   
         const hash = await utils.enkrip(payloadEnkripsiLogin);        
         const token = await utils.signin(hash);
-  
-        await codeAuth(account_id, 'login', sessionLogin, refreshToken);
+
+        const payloadEnkripsiRefresh = {
+          id: dataAccountLogin.account_id,
+          device_id: deviceID,
+          authRefresh: authRefresh
+        }
+        const hashRefresh = await utils.enkripRefresh(payloadEnkripsiRefresh);        
+        const tokenRefresh = await utils.signinRefresh(hashRefresh);
+
+        await codeAuth(account_id, 'login', sessionLogin, authRefresh);
 
         await tabelLogin.update({
           modified_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
@@ -132,7 +140,7 @@ exports.getLogin = async function (req, res) {
         })
 
         res.header('access-token', token);
-        res.header('refresh-token', refreshToken);
+        res.header('refresh-token', tokenRefresh);
 
         return res.status(200).json(rsmg('000000', {}));
       } else {
@@ -482,7 +490,7 @@ exports.getLogout = async function (req, res) {
         account_id: id
       }
     })
-
+      
     return res.status(200).json(rsmg('000000', {}))
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error GET /api/v1/auth/logout...'});
