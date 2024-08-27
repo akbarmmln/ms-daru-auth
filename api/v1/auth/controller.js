@@ -362,6 +362,17 @@ const newVerifyTokenMS = async function (token, ignoreExpr) {
   }
   const decrypt = await utils.dekrip(verifyRes.userToken.masterKey, verifyRes.userToken.buffer);
 
+  const data = await adrAuth.findOne({
+    raw: true,
+    where: {
+      account_id: decrypt.id
+    }
+  })
+
+  if (!data || (data.code !== decrypt.sessionLogin)) {
+    throw new ApiErrorMsg(HttpStatusCode.UNAUTHORIZED, '90010');
+  }
+
   const newPayloadJWT = {
     id: decrypt.id,
     kk: decrypt.kk,
