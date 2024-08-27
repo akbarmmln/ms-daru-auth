@@ -54,7 +54,7 @@ exports.signin = async function (hash) {
     const options = {
       issuer: 'daruku',
       algorithm: 'RS256',
-      expiresIn: 300,
+      expiresIn: 3600,
     };
     const token = jwt.sign(
       hash,
