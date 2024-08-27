@@ -317,13 +317,9 @@ exports.getPostRegister = async function (req, res) {
 exports.verifyToken = async function(req, res){
   try{
     const token = req.headers['access-token'];
-    let ignoreExpr = req.body.ignoreExpr;
-    if (!ignoreExpr) {
-      ignoreExpr = false;
-    }
     if (!token) throw new ApiErrorMsg(HttpStatusCode.UNAUTHORIZED, '90006');
 
-    const hasil = await newVerifyTokenMS(token, ignoreExpr);
+    const hasil = await newVerifyTokenMS(token);
     res.header('access-token', hasil.access_token);
     return res.status(200).json(rsmg('000000', hasil))
   }catch(e){
@@ -335,13 +331,9 @@ exports.verifyToken = async function(req, res){
 exports.verifyTokenSelft = async function(req, res, next){
   try{
     const token = req.headers['access-token'];
-    let ignoreExpr = req.body.ignoreExpr;
-    if (!ignoreExpr) {
-      ignoreExpr = false;
-    }
     if (!token) throw new ApiErrorMsg(HttpStatusCode.UNAUTHORIZED, '90006');
 
-    const hasil = await newVerifyTokenMS(token, ignoreExpr);
+    const hasil = await newVerifyTokenMS(token);
     req.id = hasil.id;
     req.parts = hasil.partition;
     req.decrypt = hasil
@@ -353,8 +345,8 @@ exports.verifyTokenSelft = async function(req, res, next){
   }
 }
 
-const newVerifyTokenMS = async function (token, ignoreExpr) {
-  const verifyRes = await utils.verify(token, ignoreExpr);
+const newVerifyTokenMS = async function (token) {
+  const verifyRes = await utils.verify(token);
   if (verifyRes.status == 400) {
     throw new ApiErrorMsg(HttpStatusCode.UNAUTHORIZED, '90013');
   } else if (verifyRes.status == 401){

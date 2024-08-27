@@ -68,14 +68,13 @@ exports.signin = async function (hash) {
   }
 }
 
-exports.verify = async function (token, ignoreExpr = false) {
+exports.verify = async function (token) {
   try {
     const publicKey = process.env.PUBLIC_KEY_JWT;
 
     const options = {
       issuer: 'daruku',
-      algorithms: ['RS256'],
-      ignoreExpiration: ignoreExpr
+      algorithms: ['RS256']
     };
 
     const userToken = jwt.verify(
