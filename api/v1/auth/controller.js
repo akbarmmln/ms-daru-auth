@@ -358,7 +358,8 @@ const newVerifyTokenMS = async function (token) {
   const data = await adrAuth.findOne({
     raw: true,
     where: {
-      account_id: decrypt.id
+      account_id: decrypt.id,
+      type: 'login'
     }
   })
 
