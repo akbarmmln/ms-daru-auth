@@ -757,6 +757,11 @@ exports.verifyCodeTrx = async function (req, res) {
     if (!check) {
       throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '90015');
     }
+
+    await adrAuth.destroy({
+      where: { id: check.id }
+    });
+
     return res.status(200).json(rsmg('000000'))
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/verify-code-trx...' });
