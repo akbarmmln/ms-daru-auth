@@ -19,7 +19,7 @@ const firestore = fire.firestore();
 const errMsg = require('../../../error/resError');
 const ApiErrorMsg = require('../../../error/apiErrorMsg')
 const HttpStatusCode = require("../../../error/httpStatusCode");
-const { where } = require('sequelize');
+const nanoid = require('nanoid-esm')
 
 exports.getLogin = async function (req, res) {
   try {
@@ -336,6 +336,7 @@ exports.verifyTokenSelft = async function(req, res, next){
     const hasil = await newVerifyTokenMS(token);
     req.id = hasil.id;
     req.parts = hasil.partition;
+    req.sessionLogin = hasil.sessionLogin;
     req.decrypt = hasil
     res.header('access-token', hasil.access_token);
     return next();
@@ -640,5 +641,124 @@ exports.refreshToken = async function (req, res) {
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/refresh-token...' });
     return utils.returnErrorFunction(res, 'error POST /api/v1/auth/refresh-token...', e);
+  }
+}
+
+exports.verifyPin = async function (req, res) {
+  try {
+    const code = nanoid(10);
+    const newDate = moment().format('YYYY-MM-DD HH:mm:ss')
+    const id = req.id;
+    const type = req.body.type;
+    const pin = req.body.pin;
+
+    const splitId = id.split('-');
+    const splitIdLenght = splitId.length
+    const partition = splitId[splitIdLenght - 1]
+
+    const tabelLogin = adrLogin(partition)
+    const dataAccountLogin = await tabelLogin.findOne({
+      raw: true,
+      where: {
+        account_id: `${account_id}`
+      }
+    })
+    if (!dataAccountLogin) {
+      throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '90003');
+    }
+    if (dataAccountLogin.blocked == 1) {
+      throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '90011');
+    }
+
+    if (dataAccountLogin.available_counter >= 3) {
+      if (moment(newDate).isSameOrBefore(dataAccountLogin.next_available)) {
+        throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '90012', formats.getCurrentTimeInJakarta(dataAccountLogin.next_available));
+      }
+
+      await tabelLogin.update({
+        modified_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+        modified_by: account_id,
+        available_counter: null,
+        next_available: null
+      }, {
+        where: {
+          id: dataAccountLogin.id
+        }
+      })
+    }
+
+    const pinRegistered = dataAccountLogin.pin;
+    const checkPin = await bcrypt.compare(pin, pinRegistered);
+    if (checkPin) {
+      if (type === 'tfp') {
+        await codeAuth(id, type, code);
+      }
+
+      await tabelLogin.update({
+        modified_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+        modified_by: account_id,
+        available_counter: null,
+        next_available: null
+      }, {
+        where: {
+          id: dataAccountLogin.id
+        }
+      })
+
+      return res.status(200).json(rsmg('000000', {
+        type: type,
+        code: code
+      }));
+    } else {
+      let availCounter = dataAccountLogin.available_counter;
+      availCounter = formats.isEmpty(availCounter) || parseInt(availCounter) >= 3 ? 0 : availCounter
+      const newAvailCounter = parseInt(availCounter) + 1;
+      const next_available = newAvailCounter == 3 ? moment(newDate).add(3, 'h').format('YYYY-MM-DD HH:mm:ss') : null;
+
+      await tabelLogin.update({
+        modified_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+        modified_by: account_id,
+        available_counter: newAvailCounter,
+        next_available: next_available
+      }, {
+        where: {
+          id: dataAccountLogin.id
+        }
+      })
+
+      if (newAvailCounter >= 3) {
+        throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '90012', formats.getCurrentTimeInJakarta(next_available));
+      }
+      throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '90003');
+    }
+
+  } catch (e) {
+    logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/verify-pin...' });
+    return utils.returnErrorFunction(res, 'error POST /api/v1/auth/verify-pin...', e);
+  }
+}
+
+exports.verifyCodeTrx = async function (req, res) {
+  try {
+    const type = req.body.type;
+    const code = req.body.code;
+    const id = req.id;
+
+    const check = await adrAuth.findOne({
+      raw: true,
+      where: {
+        account_id: id,
+        type: type,
+        code: code
+      }
+    })
+
+    if (!check) {
+      throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '90015');
+    }
+    return res.status(200).json(rsmg('000000'))
+  } catch (e) {
+    logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/verify-code-trx...' });
+    return utils.returnErrorFunction(res, 'error POST /api/v1/auth/verify-code-trx...', e);
   }
 }

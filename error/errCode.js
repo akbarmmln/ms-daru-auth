@@ -2,7 +2,7 @@ const errCode = {
   '10000': 'internal server error',
   '90001': 'data tidak ditemukan',
   '90002': 'data belum ter-register',
-  '90003': 'pin not valid',
+  '90003': 'user or pin not valid',
   '90004': 'data telah ter-register',
   '90005': 'register telah ditutup',
   '90006': 'missing parameter access token',
@@ -14,6 +14,7 @@ const errCode = {
   '90012': 'login blocked',
   '90013': 'token expired',
   '90014': 'missing parameter refresh token',
+  '90015': 'transaction not permitted',
 };
 
 module.exports = errCode;
