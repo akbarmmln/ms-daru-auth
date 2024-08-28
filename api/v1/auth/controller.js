@@ -660,7 +660,7 @@ exports.verifyPin = async function (req, res) {
     const dataAccountLogin = await tabelLogin.findOne({
       raw: true,
       where: {
-        account_id: `${account_id}`
+        account_id: id
       }
     })
     if (!dataAccountLogin) {
@@ -677,7 +677,7 @@ exports.verifyPin = async function (req, res) {
 
       await tabelLogin.update({
         modified_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
-        modified_by: account_id,
+        modified_by: id,
         available_counter: null,
         next_available: null
       }, {
@@ -696,7 +696,7 @@ exports.verifyPin = async function (req, res) {
 
       await tabelLogin.update({
         modified_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
-        modified_by: account_id,
+        modified_by: id,
         available_counter: null,
         next_available: null
       }, {
@@ -717,7 +717,7 @@ exports.verifyPin = async function (req, res) {
 
       await tabelLogin.update({
         modified_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
-        modified_by: account_id,
+        modified_by: id,
         available_counter: newAvailCounter,
         next_available: next_available
       }, {
