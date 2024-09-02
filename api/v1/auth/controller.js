@@ -691,7 +691,7 @@ exports.verifyPin = async function (req, res) {
     const pinRegistered = dataAccountLogin.pin;
     const checkPin = await bcrypt.compare(pin, pinRegistered);
     if (checkPin) {
-      if (type === 'tfp') {
+      if (type === 'transfer') {
         await codeAuth(id, type, code);
       }
 
