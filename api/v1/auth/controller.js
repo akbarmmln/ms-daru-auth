@@ -694,6 +694,9 @@ exports.verifyPin = async function (req, res) {
       if (type === 'transfer') {
         await codeAuth(id, type, code);
       }
+      if (type === 'bayar-ipl') {
+        await codeAuth(id, type, code);
+      }
 
       await tabelLogin.update({
         modified_dt: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
