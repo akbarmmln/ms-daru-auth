@@ -142,7 +142,7 @@ exports.getLogin = async function (req, res) {
         res.header('access-token', token);
         res.header('refresh-token', tokenRefresh);
 
-        return res.status(200).json(rsmg('000000', {}));
+        return res.status(200).json(rsmg('000000', findVerif));
       } else {
         let availCounter = dataAccountLogin.available_counter;
         availCounter = formats.isEmpty(availCounter) || parseInt(availCounter) >= 3 ? 0 : availCounter
