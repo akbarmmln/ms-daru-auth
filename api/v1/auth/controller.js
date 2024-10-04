@@ -771,3 +771,21 @@ exports.verifyCodeTrx = async function (req, res) {
     return utils.returnErrorFunction(res, 'error POST /api/v1/auth/verify-code-trx...', e);
   }
 }
+
+exports.positionAccount = async function(req, res) {
+  try {
+    const id = req.id;
+
+    const data = await adrVerifikasi.findOne({
+      raw: true,
+      where: {
+        account_id: id
+      }
+    })
+
+    return res.status(200).json(rsmg('000000', data))
+  } catch (e) {
+    logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/position/account...' });
+    return utils.returnErrorFunction(res, 'error POST /api/v1/auth/position/account...', e);
+  }
+}

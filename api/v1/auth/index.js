@@ -21,4 +21,6 @@ router.post('/lupa-pin', controller.lupaPin);
 router.post('/verify-pin', controller.verifyTokenSelft, controller.verifyPin);
 router.post('/verify-code-trx', controller.verifyTokenSelft, controller.verifyCodeTrx);
 
+router.post('/position/account', controller.verifyTokenSelft, controller.positionAccount);
+
 module.exports = router;
