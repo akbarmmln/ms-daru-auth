@@ -8,7 +8,7 @@ router.get('/logout', controller.verifyTokenSelft, controller.getLogout);
 
 router.post('/pre-register', controller.getPreRegister);
 
-router.post('/post-register', controller.getPostRegister);
+router.post('/post-register', controller.postRegister);
 
 router.post('/verify-token', controller.verifyToken);
 

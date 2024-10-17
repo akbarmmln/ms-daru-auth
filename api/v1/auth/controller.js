@@ -20,6 +20,9 @@ const errMsg = require('../../../error/resError');
 const ApiErrorMsg = require('../../../error/apiErrorMsg')
 const HttpStatusCode = require("../../../error/httpStatusCode");
 const nanoid = require('nanoid-esm')
+const { Op } = require('sequelize');
+const defaultMP = require('../../../model/default_menu_position');
+const adrAksesMenuUser = require('../../../model/adr_akses_menu_user');
 
 exports.getLogin = async function (req, res) {
   try {
@@ -212,7 +215,7 @@ exports.getPreRegister = async function (req, res) {
   }
 }
 
-exports.getPostRegister = async function (req, res) {
+exports.postRegister = async function (req, res) {
   let transaction = await connectionDB.transaction();
   try {
     const dateTime = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
@@ -244,6 +247,18 @@ exports.getPostRegister = async function (req, res) {
     });
 
     if (cekData.length > 0 && cekData[0].is_registered == 0) {
+      const position_id = cekData[0].position_id;
+      
+      const dataDefaultAkses = await defaultMP.findAll({
+        raw: true,
+        where: {
+          posititon_id: {
+            [Op.like]: `'%${position_id}%'`
+          }
+        }
+      })
+      console.log('asdasdsadasda ', JSON.stringify(dataDefaultAkses))
+      
       await tabelLogin.create({
         id: uuidv4(),
         created_dt: dateTime,
