@@ -257,8 +257,22 @@ exports.postRegister = async function (req, res) {
           }
         }
       })
-      console.log('asdasdsadasda ', JSON.stringify(dataDefaultAkses))
-
+      let dataAkses = [];
+      for (let k=0; k<dataDefaultAkses.length; k++) {
+        let payloadAksesSave = {
+          id: uuidv4(),
+          account_id: id,
+          id_menu: dataDefaultAkses[k].id,
+          is_deleted: 0
+        }
+        dataAkses.push(payloadAksesSave);
+      }
+      console.log('asdasdsadasda ', JSON.stringify(dataAkses))
+      
+      await adrAksesMenuUser.bulkCreate(dataAkses, {
+        transaction: transaction
+      });
+  
       await tabelLogin.create({
         id: uuidv4(),
         created_dt: dateTime,
