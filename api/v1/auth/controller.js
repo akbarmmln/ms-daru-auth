@@ -253,12 +253,12 @@ exports.postRegister = async function (req, res) {
         raw: true,
         where: {
           posititon_id: {
-            [Op.like]: `'%${position_id}%'`
+            [Op.like]: `%${position_id}%`
           }
         }
       })
       console.log('asdasdsadasda ', JSON.stringify(dataDefaultAkses))
-      
+
       await tabelLogin.create({
         id: uuidv4(),
         created_dt: dateTime,
