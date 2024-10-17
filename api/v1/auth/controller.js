@@ -824,7 +824,7 @@ exports.positionAccount = async function(req, res) {
       let menuDetails = await defaultMP.findOne({
         raw: true,
         where: {
-          id: akses[j].id
+          id: id_menu[j].id
         }
       })
 
