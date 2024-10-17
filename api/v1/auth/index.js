@@ -23,6 +23,4 @@ router.post('/verify-code-trx', controller.verifyTokenSelft, controller.verifyCo
 
 router.get('/position/account', controller.verifyTokenSelft, controller.positionAccount);
 
-router.get('/menu-akses', controller.verifyTokenSelft, controller.menuAkses);
-
 module.exports = router;

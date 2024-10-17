@@ -811,17 +811,6 @@ exports.positionAccount = async function(req, res) {
       }
     })
 
-    return res.status(200).json(rsmg('000000', data))
-  } catch (e) {
-    logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/position/account...' });
-    return utils.returnErrorFunction(res, 'error POST /api/v1/auth/position/account...', e);
-  }
-}
-
-exports.menuAkses = async function (req, res) {
-  try {
-    const id = req.id;
-
     const akses = await adrAksesMenuUser.findAll({
       raw: true,
       where: {
@@ -830,9 +819,13 @@ exports.menuAkses = async function (req, res) {
       }
     })
 
-    return res.status(200).json(rsmg('000000', akses))
+    const hasil = {
+      ...data,
+      akses: akses
+    }
+    return res.status(200).json(rsmg('000000', hasil))
   } catch (e) {
-    logger.errorWithContext({ error: e, message: 'error GET /api/v1/auth/menu-akses...' });
-    return utils.returnErrorFunction(res, 'error GET /api/v1/auth/menu-akses...', e);
+    logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/position/account...' });
+    return utils.returnErrorFunction(res, 'error POST /api/v1/auth/position/account...', e);
   }
 }
