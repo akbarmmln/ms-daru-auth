@@ -819,9 +819,27 @@ exports.positionAccount = async function(req, res) {
       }
     })
 
+    let finalAkses = [];
+    for (let j=0; j<akses.length; j++) {
+      let menuDetails = await defaultMP.findOne({
+        raw: true,
+        where: {
+          id: akses[j].id
+        }
+      })
+
+      if (menuDetails) {
+        let temp = {
+          menu_id: menuDetails.menu_id,
+          menu_name: menuDetails.menu_name,
+          activity_name: menuDetails.activity_name
+        }
+        finalAkses.push(temp)
+      }
+    }
     const hasil = {
       ...data,
-      akses: akses
+      akses: finalAkses
     }
     return res.status(200).json(rsmg('000000', hasil))
   } catch (e) {
