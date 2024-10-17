@@ -20,7 +20,7 @@ const errMsg = require('../../../error/resError');
 const ApiErrorMsg = require('../../../error/apiErrorMsg')
 const HttpStatusCode = require("../../../error/httpStatusCode");
 const nanoid = require('nanoid-esm')
-const { Op } = require('sequelize');
+const { Op, where } = require('sequelize');
 const defaultMP = require('../../../model/default_menu_position');
 const adrAksesMenuUser = require('../../../model/adr_akses_menu_user');
 
@@ -268,7 +268,7 @@ exports.postRegister = async function (req, res) {
         dataAkses.push(payloadAksesSave);
       }
       console.log('asdasdsadasda ', JSON.stringify(dataAkses))
-      
+
       await adrAksesMenuUser.bulkCreate(dataAkses, {
         transaction: transaction
       });
@@ -764,7 +764,6 @@ exports.verifyPin = async function (req, res) {
       }
       throw new ApiErrorMsg(HttpStatusCode.BAD_REQUEST, '90003');
     }
-
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/verify-pin...' });
     return utils.returnErrorFunction(res, 'error POST /api/v1/auth/verify-pin...', e);
@@ -816,5 +815,24 @@ exports.positionAccount = async function(req, res) {
   } catch (e) {
     logger.errorWithContext({ error: e, message: 'error POST /api/v1/auth/position/account...' });
     return utils.returnErrorFunction(res, 'error POST /api/v1/auth/position/account...', e);
+  }
+}
+
+exports.menuAkses = async function (req, res) {
+  try {
+    const id = req.id;
+
+    const akses = await adrAksesMenuUser.findAll({
+      raw: true,
+      where: {
+        account_id: id,
+        is_deleted: 0
+      }
+    })
+
+    return res.status(200).json(rsmg('000000', akses))
+  } catch (e) {
+    logger.errorWithContext({ error: e, message: 'error GET /api/v1/auth/menu-akses...' });
+    return utils.returnErrorFunction(res, 'error GET /api/v1/auth/menu-akses...', e);
   }
 }
