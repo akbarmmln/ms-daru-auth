@@ -832,7 +832,8 @@ exports.positionAccount = async function(req, res) {
         let temp = {
           menu_id: menuDetails.menu_id,
           menu_name: menuDetails.menu_name,
-          activity_name: menuDetails.activity_name
+          activity_name: menuDetails.activity_name,
+          image_name: menuDetails.image
         }
         finalAkses.push(temp)
       }

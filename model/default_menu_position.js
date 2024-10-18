@@ -9,7 +9,8 @@ const defaultMP = dbConnection.define('default_menu_position', {
   posititon_id: Sequelize.STRING,
   menu_id: Sequelize.STRING,
   menu_name: Sequelize.STRING,
-  activity_name: Sequelize.STRING
+  activity_name: Sequelize.STRING,
+  image: Sequelize.STRING,
 }, {
   freezeTableName: true,
   timestamps: false,
