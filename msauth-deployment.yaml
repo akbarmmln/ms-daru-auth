@@ -1,0 +1,224 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: msauth
+  namespace: sit
+  labels:
+    app: msauth
+    version: v1
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  minReadySeconds: 60
+  selector:
+    matchLabels:
+      app: msauth
+  template:
+    metadata:
+      labels:
+        app: msauth
+        version: v1
+    spec:
+      containers:
+      - name: msauth
+        image: taufik90/ms-auth:1
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8998
+        livenessProbe:
+          httpGet:
+            path: /api/v1/healthcheck/healty
+            port: 8998
+          failureThreshold: 10
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /api/v1/healthcheck/healty
+            port: 8998
+          failureThreshold: 10
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 30
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 60"]
+        env:
+         - name: ACC_KEY_ID
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: ACC_KEY_ID
+         - name: FIREBASE_CLIENT_EMAIL
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: FIREBASE_CLIENT_EMAIL
+         - name: FIREBASE_DB_URL
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: FIREBASE_DB_URL
+         - name: FIREBASE_PRIVATE_KEY
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: FIREBASE_PRIVATE_KEY
+         - name: FIREBASE_PROJECT_ID
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: FIREBASE_PROJECT_ID
+         - name: HOST_MAIL
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: HOST_MAIL
+         - name: LOGGER_LEVEL
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: LOGGER_LEVEL
+         - name: MS_ACCOUNT_V1_URL
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: MS_ACCOUNT_V1_URL
+         - name: MS_PAYMENT_V1_URL
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: MS_PAYMENT_V1_URL
+         - name: MS_SUPPORT_V1_URL
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: MS_SUPPORT_V1_URL
+         - name: MYSQL_DATABASE
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: MYSQL_DATABASE
+         - name: MYSQL_HOSTNAME
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: MYSQL_HOSTNAME
+         - name: MYSQL_PASSWORD
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: MYSQL_PASSWORD
+         - name: MYSQL_PORT
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: MYSQL_PORT
+         - name: MYSQL_USERNAME
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: MYSQL_USERNAME
+         - name: OSS_ENDPOINT
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: OSS_ENDPOINT
+         - name: OSS_REGION
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: OSS_REGION
+         - name: PASS_MAIL
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: PASS_MAIL
+         - name: PORT
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: PORT
+         - name: PORT_MAIL
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: PORT_MAIL
+         - name: PRIVATE_KEY_GCM
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: PRIVATE_KEY_GCM
+         - name: PRIVATE_KEY_GCM_REFRESH
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: PRIVATE_KEY_GCM_REFRESH
+         - name: PRIVATE_KEY_JWT
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: PRIVATE_KEY_JWT
+         - name: PRIVATE_KEY_JWT_REFRESH
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: PRIVATE_KEY_JWT_REFRESH
+         - name: PUBLIC_KEY_GCM
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: PUBLIC_KEY_GCM
+         - name: PUBLIC_KEY_GCM_REFRESH
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: PUBLIC_KEY_GCM_REFRESH
+         - name: PUBLIC_KEY_JWT
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: PUBLIC_KEY_JWT
+         - name: PUBLIC_KEY_JWT_REFRESH
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: PUBLIC_KEY_JWT_REFRESH
+         - name: SCR_ACC_KEY
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: SCR_ACC_KEY
+         - name: SECRET
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: SECRET
+         - name: SECRET_REFRESH
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: SECRET_REFRESH
+         - name: SERVICE_NAME
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: SERVICE_NAME
+         - name: SSL_SEQUELIZE
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: SSL_SEQUELIZE
+         - name: USER_MAIL
+           valueFrom:
+            secretKeyRef:
+              name: msauth-secret
+              key: USER_MAIL
