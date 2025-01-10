@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
       - name: msauth
-        image: taufik90/ms-auth:1
+        image: taufik90/ms-auth:$BUILD_NUMBER
         imagePullPolicy: Always
         ports:
         - containerPort: 8998
@@ -222,3 +222,4 @@ spec:
             secretKeyRef:
               name: msauth-secret
               key: USER_MAIL
+      restartPolicy: Always
